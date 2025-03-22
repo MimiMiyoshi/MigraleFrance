@@ -35,9 +35,35 @@ const TasksPage = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<VisaTask | null>(null);
   
-  const { data: tasks, isLoading } = useQuery<VisaTask[]>({
-    queryKey: ["/api/tasks"],
-  });
+  // モックデータを使用
+  const [tasks, setTasks] = useState<VisaTask[]>([
+    {
+      id: 1,
+      userId: 1,
+      title: "有効なパスポートの準備",
+      description: "フランスからの出国予定日から少なくとも3ヶ月間有効なパスポートを確保してください",
+      completed: false,
+      dueDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0]
+    },
+    {
+      id: 2,
+      userId: 1,
+      title: "ビザ申請書の記入",
+      description: "公式ウェブサイトから長期学生ビザ申請書をダウンロードして記入してください",
+      completed: true,
+      dueDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
+    },
+    {
+      id: 3,
+      userId: 1,
+      title: "写真の準備",
+      description: "ビザ基準に合う近影写真2枚を準備してください",
+      completed: false,
+      dueDate: new Date(Date.now() + 10 * 86400000).toISOString().split('T')[0]
+    }
+  ]);
+  
+  const isLoading = false;
   
   const addTaskMutation = useMutation({
     mutationFn: async (data: TaskFormValues) => {
