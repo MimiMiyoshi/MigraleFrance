@@ -1,7 +1,7 @@
-import NextAuth, { type NextAuthOptions } from 'next-auth';
+import NextAuth, { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { getUserByUsername, getUser } from '../../lib/db';
-import { comparePasswords } from '../../utils/auth';
+import { getUserByUsername } from '@/lib/db';
+import { comparePasswords } from '@/utils/auth';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -17,19 +17,13 @@ export const authOptions: NextAuthOptions = {
         }
 
         const user = await getUserByUsername(credentials.username);
-        if (!user) {
-          console.log('User not found:', credentials.username);
-          return null;
-        }
+        if (!user) return null;
 
-        const isPasswordValid = await comparePasswords(credentials.password, user.password);
-        if (!isPasswordValid) {
-          console.log('Invalid password for user:', credentials.username);
-          return null;
-        }
+        const passwordValid = await comparePasswords(credentials.password, user.password);
+        if (!passwordValid) return null;
 
         return {
-          id: user.id,
+          id: user.id.toString(),
           username: user.username,
           email: user.email,
           role: user.role || 'user'
@@ -37,37 +31,34 @@ export const authOptions: NextAuthOptions = {
       }
     })
   ],
+  session: {
+    strategy: 'jwt'
+  },
   callbacks: {
     async jwt({ token, user }) {
-      // 初回サインイン時にuserオブジェクトからtokenにデータを追加
       if (user) {
-        token.id = user.id;
+        token.id = parseInt(user.id as string);
         token.username = user.username;
-        token.role = user.role || 'user';
+        token.role = user.role;
       }
       return token;
     },
     async session({ session, token }) {
-      // JWTトークンの情報をセッションに追加
-      if (token && session.user) {
-        session.user.id = token.id as number;
-        session.user.username = token.username as string;
-        session.user.role = token.role as string;
+      if (token) {
+        session.user.id = token.id;
+        session.user.username = token.username;
+        session.user.role = token.role;
       }
       return session;
     }
   },
   pages: {
     signIn: '/auth',
-    signOut: '/auth',
-    error: '/auth',
-  },
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30日間
-  },
-  secret: process.env.NEXTAUTH_SECRET || 'your-secret-key-for-development'
+    newUser: '/auth',
+    error: '/auth'
+  }
 };
 
 const handler = NextAuth(authOptions);
+
 export { handler as GET, handler as POST };
