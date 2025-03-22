@@ -239,9 +239,32 @@ const TasksPage = () => {
       
       <main className="flex-grow py-12 bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* 進捗状況ヘッダー */}
+          <Card className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-none shadow-sm">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">ビザタスク管理</h1>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Check className="h-4 w-4 mr-1 text-green-500" />
+                    <span>{tasks.filter(task => task.completed).length} / {tasks.length} タスク完了</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => navigate("/")}>
+                    ダッシュボードへ
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/questionnaire")}>
+                    新しいビザ診断
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">ビザタスク</h1>
+              <h2 className="text-xl font-bold text-gray-900">タスク一覧</h2>
               <p className="mt-1 text-gray-600">ビザ申請タスクを追跡・管理する</p>
             </div>
             <Button onClick={() => setIsAddDialogOpen(true)}>
