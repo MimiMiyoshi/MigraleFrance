@@ -193,7 +193,7 @@ const QuestionnairePage = () => {
             </div>
           </div>
           
-          <Card className="shadow-lg">
+          <Card className="shadow-lg" id="questionnaire-form">
             <CardHeader>
               <CardTitle className="text-xl">{currentQuestion.question}</CardTitle>
             </CardHeader>
@@ -223,6 +223,7 @@ const QuestionnairePage = () => {
                 戻る
               </Button>
               <Button 
+                id="questionnaire-submit"
                 onClick={handleNext}
                 disabled={!currentAnswer}
               >

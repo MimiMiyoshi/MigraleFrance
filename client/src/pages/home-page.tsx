@@ -137,7 +137,7 @@ const HomePage = () => {
               </Card>
 
               {/* AIエージェントのアドバイス */}
-              <Card className="overflow-hidden border-2 border-blue-100">
+              <Card className="overflow-hidden border-2 border-blue-100" id="ai-agent">
                 <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 py-4">
                   <div className="flex items-center gap-2">
                     <BrainCircuit className="h-5 w-5 text-primary" />

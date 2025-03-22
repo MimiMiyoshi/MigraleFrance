@@ -102,7 +102,7 @@ const Header = () => {
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center gap-2">
+                    <Button variant="ghost" className="flex items-center gap-2" id="user-info">
                       <Avatar className="h-8 w-8">
                         <AvatarFallback className="bg-primary text-white">
                           {user.username.charAt(0).toUpperCase()}

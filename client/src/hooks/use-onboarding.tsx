@@ -1,7 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { useLocation } from 'wouter';
-import { useAuth } from './use-auth';
 
+// Define the context type
 type OnboardingContextType = {
   showTour: boolean;
   setShowTour: (show: boolean) => void;
@@ -13,72 +12,70 @@ type OnboardingContextType = {
   resetTour: () => void;
 };
 
-const OnboardingContext = createContext<OnboardingContextType | null>(null);
+// Create context with default values
+export const OnboardingContext = createContext<OnboardingContextType>({
+  showTour: false,
+  setShowTour: () => {},
+  completedTours: {},
+  markTourComplete: () => {},
+  shouldShowTourForPage: () => false,
+  currentStep: 0,
+  setCurrentStep: () => {},
+  resetTour: () => {},
+});
 
-const TOUR_STORAGE_KEY = 'migrale_completed_tours';
-
+// Provider component
 export function OnboardingProvider({ children }: { children: ReactNode }) {
+  // State to track tour visibility
   const [showTour, setShowTour] = useState(false);
+  
+  // State to track which tours have been completed
   const [completedTours, setCompletedTours] = useState<Record<string, boolean>>({});
+  
+  // Current step in the tour
   const [currentStep, setCurrentStep] = useState(0);
-  const { user } = useAuth();
-  const [location] = useLocation();
 
-  // Load completed tours from localStorage on first render
+  // Check for first-time users on mount
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(TOUR_STORAGE_KEY);
-      if (saved) {
-        setCompletedTours(JSON.parse(saved));
-      }
-    } catch (e) {
-      console.error('Error loading tour completion data', e);
+    const tourState = localStorage.getItem('migrale_completed_tours');
+    if (tourState) {
+      setCompletedTours(JSON.parse(tourState));
+    } else {
+      // First-time user, show tour automatically
+      setShowTour(true);
     }
   }, []);
 
-  // Check if we should show a tour for the current page when the user logs in or navigates
+  // Save completed tours to localStorage
   useEffect(() => {
-    if (user) {
-      const pageName = getPageNameFromLocation(location);
-      if (shouldShowTourForPage(pageName)) {
-        // Slight delay to ensure components are rendered
-        setTimeout(() => setShowTour(true), 1000);
-      }
-    }
-  }, [user, location]);
+    localStorage.setItem('migrale_completed_tours', JSON.stringify(completedTours));
+  }, [completedTours]);
 
-  const getPageNameFromLocation = (path: string): string => {
-    if (path === '/') return 'home';
-    // Remove leading slash and any parameters
-    return path.replace(/^\//, '').split('/')[0];
-  };
-
+  // Mark a tour as complete
   const markTourComplete = (tourName: string) => {
-    const updated = { ...completedTours, [tourName]: true };
-    setCompletedTours(updated);
-    try {
-      localStorage.setItem(TOUR_STORAGE_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.error('Error saving tour completion data', e);
-    }
-    setShowTour(false);
+    setCompletedTours(prev => ({
+      ...prev,
+      [tourName]: true
+    }));
   };
 
-  const shouldShowTourForPage = (pageName: string): boolean => {
+  // Check if a tour should be shown for a page
+  const shouldShowTourForPage = (pageName: string) => {
+    // If the user has already completed the tour for this page, don't show it again
     return !completedTours[pageName];
   };
 
+  // Reset the current tour
   const resetTour = () => {
     setCurrentStep(0);
-    setShowTour(true);
   };
 
   return (
-    <OnboardingContext.Provider
-      value={{
-        showTour,
-        setShowTour,
-        completedTours,
+    <OnboardingContext.Provider 
+      value={{ 
+        showTour, 
+        setShowTour, 
+        completedTours, 
         markTourComplete,
         shouldShowTourForPage,
         currentStep,
@@ -91,6 +88,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Custom hook for accessing the context
 export function useOnboarding() {
   const context = useContext(OnboardingContext);
   if (!context) {
