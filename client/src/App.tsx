@@ -10,6 +10,7 @@ import VisaResultPage from "@/pages/visa-result-page";
 import TasksPage from "@/pages/tasks-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
+import { NotificationProvider } from "./hooks/use-notifications";
 
 function Router() {
   return (
@@ -28,8 +29,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router />
-        <Toaster />
+        <NotificationProvider>
+          <Router />
+          <Toaster />
+        </NotificationProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
