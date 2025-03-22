@@ -186,13 +186,8 @@ export class SupabaseStorage implements IStorage {
     // Supabase will handle setting default values based on the SQL table definition
     // But let's map our user object to match the expected fields
     const user = {
-      ...insertUser,
-      // The full_name field in database matches fullName in our schema
-      full_name: insertUser.fullName
+      ...insertUser
     };
-    
-    // Delete the fullName property as we don't need it anymore
-    delete user.fullName;
     
     // Insert the user into Supabase
     const { data, error } = await this.supabase
@@ -208,8 +203,7 @@ export class SupabaseStorage implements IStorage {
     
     // Map the database response back to our expected schema
     const userResponse = {
-      ...data,
-      fullName: data.full_name,
+      ...data
     } as User;
     
     return userResponse;
