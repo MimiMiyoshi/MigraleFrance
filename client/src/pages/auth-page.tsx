@@ -27,7 +27,7 @@ const AuthPage = () => {
       <Header />
       
       <div className="flex-grow flex items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full">
+        <div className="max-w-md w-full" id="auth-form">
           <AuthTabs activeTab={activeTab} setActiveTab={setActiveTab} />
         </div>
       </div>

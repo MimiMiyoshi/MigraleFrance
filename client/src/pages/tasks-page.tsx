@@ -240,7 +240,7 @@ const TasksPage = () => {
       <main className="flex-grow py-12 bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* 進捗状況ヘッダー */}
-          <Card className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-none shadow-sm">
+          <Card className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-none shadow-sm" id="task-filters">
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -267,14 +267,14 @@ const TasksPage = () => {
               <h2 className="text-xl font-bold text-gray-900">タスク一覧</h2>
               <p className="mt-1 text-gray-600">ビザ申請タスクを追跡・管理する</p>
             </div>
-            <Button onClick={() => setIsAddDialogOpen(true)}>
+            <Button onClick={() => setIsAddDialogOpen(true)} id="add-task">
               <PlusCircle className="mr-2 h-4 w-4" />
               タスクを追加
             </Button>
           </div>
           
           {/* Pending Tasks */}
-          <div className="mb-8">
+          <div className="mb-8" id="task-list">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
               <ListChecks className="mr-2 h-5 w-5 text-primary" />
               未完了タスク ({pendingTasks.length})
