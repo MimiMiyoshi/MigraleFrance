@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Steps } from 'intro.js-react';
 import 'intro.js/introjs.css';
+import 'intro.js/themes/introjs-modern.css';
 import { useOnboarding } from '@/hooks/use-onboarding';
 import { useLocation } from 'wouter';
-import 'intro.js/themes/introjs-modern.css';
 
 // Define the tour step structure
 interface TourStep {
