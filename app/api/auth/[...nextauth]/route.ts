@@ -1,7 +1,8 @@
-import NextAuth, { NextAuthOptions } from 'next-auth';
+import { NextAuthOptions } from 'next-auth';
+import NextAuth from 'next-auth/next';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import * as db from '@/app/lib/db';
-import { comparePasswords } from '@/app/utils/auth';
+import { comparePasswords } from '../../../utils/auth';
+import { getUserByUsername } from '../../../lib/db';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,23 +17,23 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const user = await db.getUserByUsername(credentials.username);
-        
+        const user = await getUserByUsername(credentials.username);
         if (!user) {
           return null;
         }
-        
+
         const isValid = await comparePasswords(credentials.password, user.password);
-        
         if (!isValid) {
           return null;
         }
-        
-        // パスワードを含まない形で返す
+
+        // パスワードを除外して返す
+        const { password, ...userWithoutPassword } = user;
         return {
-          id: user.id,
+          id: String(user.id),
           username: user.username,
-          email: user.email
+          email: user.email,
+          ...userWithoutPassword
         };
       }
     })
@@ -48,20 +49,21 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (token) {
         session.user.id = token.id;
-        session.user.username = token.username;
+        session.user.username = token.username as string;
       }
       return session;
     }
   },
   pages: {
     signIn: '/auth',
+    signOut: '/auth',
     error: '/auth',
   },
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30日間
+    maxAge: 30 * 24 * 60 * 60, // 30日
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || 'your-secret-key',
 };
 
 const handler = NextAuth(authOptions);
