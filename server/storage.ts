@@ -67,7 +67,13 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
+    const user: User = { 
+      ...insertUser, 
+      id,
+      role: "user",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
     this.users.set(id, user);
     return user;
   }
@@ -126,32 +132,21 @@ export class SupabaseStorage implements IStorage {
   sessionStore: any;
 
   constructor() {
+    console.log("Initializing Supabase client...");
+    
     // Initialize Supabase client
     this.supabase = createClient(
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_KEY!
     );
 
-    // Use PostgreSQL-based session store for production
-    // Note: This requires additional setup for session tables in Supabase
+    // Use memory store for sessions for now
+    // In a production environment, you would use a PostgreSQL-based session store
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000 // prune expired entries every 24h
     });
     
-    // Initialize tables in Supabase if they don't exist
-    this.initializeTables();
-  }
-
-  private async initializeTables() {
-    try {
-      // Check if tables exist and create them if needed
-      console.log("Checking Supabase tables...");
-      
-      // This can be expanded to create tables with SQL via Supabase's REST API
-      // For now, we assume the tables are created through migrations or the Supabase UI
-    } catch (error) {
-      console.error("Error initializing Supabase tables:", error);
-    }
+    console.log("Supabase client initialized successfully");
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -187,7 +182,19 @@ export class SupabaseStorage implements IStorage {
     return data as User;
   }
 
-  async createUser(user: InsertUser): Promise<User> {
+  async createUser(insertUser: InsertUser): Promise<User> {
+    // Supabase will handle setting default values based on the SQL table definition
+    // But let's map our user object to match the expected fields
+    const user = {
+      ...insertUser,
+      // The full_name field in database matches fullName in our schema
+      full_name: insertUser.fullName
+    };
+    
+    // Delete the fullName property as we don't need it anymore
+    delete user.fullName;
+    
+    // Insert the user into Supabase
     const { data, error } = await this.supabase
       .from('users')
       .insert(user)
@@ -199,7 +206,13 @@ export class SupabaseStorage implements IStorage {
       throw new Error(`Failed to create user: ${error.message}`);
     }
     
-    return data as User;
+    // Map the database response back to our expected schema
+    const userResponse = {
+      ...data,
+      fullName: data.full_name,
+    } as User;
+    
+    return userResponse;
   }
 
   async getTasksByUserId(userId: number): Promise<VisaTask[]> {
@@ -308,8 +321,5 @@ export class SupabaseStorage implements IStorage {
   }
 }
 
-// Uncomment to use SupabaseStorage
-// export const storage = new SupabaseStorage();
-
-// Using MemStorage for now
-export const storage = new MemStorage();
+// Switch to Supabase storage
+export const storage = new SupabaseStorage();
