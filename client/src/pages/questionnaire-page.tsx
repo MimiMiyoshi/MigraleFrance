@@ -76,13 +76,27 @@ const QuestionnairePage = () => {
   const [answers, setAnswers] = useState<Answers>({});
   const [currentAnswer, setCurrentAnswer] = useState<string>("");
 
+  // モックデータ用のIDカウンター
+  const mockResponseId = 1;
+  
+  // APIリクエストをモックに置き換え
   const submitResponseMutation = useMutation({
     mutationFn: async (data: { responses: Answers, result: string }) => {
-      const res = await apiRequest("POST", "/api/visa-responses", data);
-      return await res.json();
+      // APIリクエストをシミュレート
+      console.log("送信データ:", data);
+      
+      // モックレスポンスを返す
+      return {
+        id: mockResponseId,
+        userId: 1,
+        responses: data.responses,
+        result: data.result,
+        createdAt: new Date().toISOString()
+      };
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/visa-responses"] });
+      // 実際のAPIリクエストの成功をシミュレート
+      console.log("レスポンス保存成功:", data);
       navigate(`/visa-result/${data.id}`);
     }
   });
