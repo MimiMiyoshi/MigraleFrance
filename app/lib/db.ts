@@ -1,15 +1,13 @@
+import { supabase } from './supabase';
+import { 
+  User, InsertUser, 
+  VisaTask, InsertVisaTask, 
+  VisaResponse, InsertVisaResponse 
+} from '../shared/schema';
+
 /**
  * データアクセス関数を集めたモジュールです。Supabaseを使用したデータ操作を提供します。
  */
-import { supabase } from './supabase';
-import { 
-  User, 
-  InsertUser, 
-  VisaTask, 
-  InsertVisaTask, 
-  VisaResponse, 
-  InsertVisaResponse 
-} from '../shared/schema';
 
 /**
  * ユーザー関連のデータアクセス関数
@@ -22,7 +20,11 @@ export async function getUser(id: number): Promise<User | undefined> {
       .eq('id', id)
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('ユーザー取得エラー:', error);
+      return undefined;
+    }
+    
     return data as User;
   } catch (error) {
     console.error('ユーザー取得エラー:', error);
@@ -38,10 +40,17 @@ export async function getUserByUsername(username: string): Promise<User | undefi
       .eq('username', username)
       .single();
     
-    if (error && error.code !== 'PGRST116') throw error; // PGRST116 = データが見つからない
+    if (error) {
+      if (error.code === 'PGRST116') { // 結果が見つからない場合
+        return undefined;
+      }
+      console.error('ユーザー名による検索エラー:', error);
+      return undefined;
+    }
+    
     return data as User;
   } catch (error) {
-    console.error('ユーザー名によるユーザー取得エラー:', error);
+    console.error('ユーザー名による検索エラー:', error);
     return undefined;
   }
 }
@@ -54,10 +63,17 @@ export async function getUserByEmail(email: string): Promise<User | undefined> {
       .eq('email', email)
       .single();
     
-    if (error && error.code !== 'PGRST116') throw error;
+    if (error) {
+      if (error.code === 'PGRST116') { // 結果が見つからない場合
+        return undefined;
+      }
+      console.error('メールアドレスによる検索エラー:', error);
+      return undefined;
+    }
+    
     return data as User;
   } catch (error) {
-    console.error('メールアドレスによるユーザー取得エラー:', error);
+    console.error('メールアドレスによる検索エラー:', error);
     return undefined;
   }
 }
@@ -70,7 +86,11 @@ export async function createUser(user: InsertUser): Promise<User> {
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('ユーザー作成エラー:', error);
+      throw new Error('ユーザーの作成に失敗しました');
+    }
+    
     return data as User;
   } catch (error) {
     console.error('ユーザー作成エラー:', error);
@@ -87,7 +107,11 @@ export async function updateUser(id: number, updates: Partial<User>): Promise<Us
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('ユーザー更新エラー:', error);
+      return undefined;
+    }
+    
     return data as User;
   } catch (error) {
     console.error('ユーザー更新エラー:', error);
@@ -106,10 +130,14 @@ export async function getTasksByUserId(userId: number): Promise<VisaTask[]> {
       .eq('userId', userId)
       .order('dueDate', { ascending: true });
     
-    if (error) throw error;
+    if (error) {
+      console.error('タスク一覧取得エラー:', error);
+      return [];
+    }
+    
     return data as VisaTask[];
   } catch (error) {
-    console.error('ユーザーIDによるタスク取得エラー:', error);
+    console.error('タスク一覧取得エラー:', error);
     return [];
   }
 }
@@ -122,7 +150,11 @@ export async function getTask(id: number): Promise<VisaTask | undefined> {
       .eq('id', id)
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('タスク取得エラー:', error);
+      return undefined;
+    }
+    
     return data as VisaTask;
   } catch (error) {
     console.error('タスク取得エラー:', error);
@@ -138,7 +170,11 @@ export async function createTask(task: InsertVisaTask): Promise<VisaTask> {
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('タスク作成エラー:', error);
+      throw new Error('タスクの作成に失敗しました');
+    }
+    
     return data as VisaTask;
   } catch (error) {
     console.error('タスク作成エラー:', error);
@@ -155,7 +191,11 @@ export async function updateTask(id: number, taskUpdate: Partial<VisaTask>): Pro
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('タスク更新エラー:', error);
+      return undefined;
+    }
+    
     return data as VisaTask;
   } catch (error) {
     console.error('タスク更新エラー:', error);
@@ -170,7 +210,11 @@ export async function deleteTask(id: number): Promise<boolean> {
       .delete()
       .eq('id', id);
     
-    if (error) throw error;
+    if (error) {
+      console.error('タスク削除エラー:', error);
+      return false;
+    }
+    
     return true;
   } catch (error) {
     console.error('タスク削除エラー:', error);
@@ -189,10 +233,14 @@ export async function getResponsesByUserId(userId: number): Promise<VisaResponse
       .eq('userId', userId)
       .order('createdAt', { ascending: false });
     
-    if (error) throw error;
+    if (error) {
+      console.error('ビザ回答一覧取得エラー:', error);
+      return [];
+    }
+    
     return data as VisaResponse[];
   } catch (error) {
-    console.error('ユーザーIDによるビザ回答取得エラー:', error);
+    console.error('ビザ回答一覧取得エラー:', error);
     return [];
   }
 }
@@ -205,7 +253,11 @@ export async function getResponse(id: number): Promise<VisaResponse | undefined>
       .eq('id', id)
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('ビザ回答取得エラー:', error);
+      return undefined;
+    }
+    
     return data as VisaResponse;
   } catch (error) {
     console.error('ビザ回答取得エラー:', error);
@@ -221,7 +273,11 @@ export async function createResponse(response: InsertVisaResponse): Promise<Visa
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('ビザ回答作成エラー:', error);
+      throw new Error('ビザ回答の作成に失敗しました');
+    }
+    
     return data as VisaResponse;
   } catch (error) {
     console.error('ビザ回答作成エラー:', error);
