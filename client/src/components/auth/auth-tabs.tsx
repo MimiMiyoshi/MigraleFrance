@@ -12,8 +12,8 @@ const AuthTabs = ({ activeTab, setActiveTab }: AuthTabsProps) => {
   return (
     <Tabs defaultValue={activeTab} onValueChange={(value) => setActiveTab(value as "login" | "register")}>
       <TabsList className="grid w-full grid-cols-2 mb-8">
-        <TabsTrigger value="login">Login</TabsTrigger>
-        <TabsTrigger value="register">Register</TabsTrigger>
+        <TabsTrigger value="login">ログイン</TabsTrigger>
+        <TabsTrigger value="register">新規登録</TabsTrigger>
       </TabsList>
       
       <TabsContent value="login">

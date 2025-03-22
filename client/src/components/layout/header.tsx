@@ -28,7 +28,7 @@ const Header = () => {
             <Link href="/">
               <a className="flex-shrink-0 flex items-center">
                 <Home className="h-8 w-8 text-primary" />
-                <span className="ml-2 text-lg font-semibold text-gray-900">FranceHome</span>
+                <span className="ml-2 text-lg font-semibold text-gray-900">フランスホーム</span>
               </a>
             </Link>
             {user && (
@@ -39,7 +39,7 @@ const Header = () => {
                       ? "text-primary bg-primary/10" 
                       : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   }`}>
-                    Home
+                    ホーム
                   </a>
                 </Link>
                 <Link href="/questionnaire">
@@ -48,7 +48,7 @@ const Header = () => {
                       ? "text-primary bg-primary/10" 
                       : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   }`}>
-                    Questionnaire
+                    アンケート
                   </a>
                 </Link>
                 <Link href="/tasks">
@@ -57,7 +57,7 @@ const Header = () => {
                       ? "text-primary bg-primary/10" 
                       : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   }`}>
-                    Tasks
+                    タスク
                   </a>
                 </Link>
               </nav>
@@ -68,12 +68,12 @@ const Header = () => {
               <>
                 <Link href="/auth">
                   <a className="px-3 py-2 rounded-md text-sm font-medium text-primary hover:text-primary-dark">
-                    Login
+                    ログイン
                   </a>
                 </Link>
                 <Link href="/auth">
                   <a className="ml-2 px-3 py-2 rounded-md text-sm font-medium text-white bg-primary hover:bg-primary-dark">
-                    Sign up
+                    新規登録
                   </a>
                 </Link>
               </>
@@ -90,15 +90,15 @@ const Header = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuLabel>マイアカウント</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <Link href="/tasks">
                     <DropdownMenuItem>
-                      Tasks
+                      タスク
                     </DropdownMenuItem>
                   </Link>
                   <DropdownMenuItem onClick={handleLogout}>
-                    Log out
+                    ログアウト
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
