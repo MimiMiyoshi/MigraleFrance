@@ -348,9 +348,9 @@ const TasksPage = () => {
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Edit Task</DialogTitle>
+                <DialogTitle>タスクを編集</DialogTitle>
                 <DialogDescription>
-                  Update the details of your task.
+                  タスクの詳細を更新します。
                 </DialogDescription>
               </DialogHeader>
               
@@ -361,7 +361,7 @@ const TasksPage = () => {
                     name="title"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Task Title</FormLabel>
+                        <FormLabel>タスク名</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -375,7 +375,7 @@ const TasksPage = () => {
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description (Optional)</FormLabel>
+                        <FormLabel>説明 (任意)</FormLabel>
                         <FormControl>
                           <Textarea {...field} />
                         </FormControl>
@@ -389,7 +389,7 @@ const TasksPage = () => {
                     name="dueDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Due Date (Optional)</FormLabel>
+                        <FormLabel>期限日 (任意)</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} />
                         </FormControl>
@@ -400,16 +400,16 @@ const TasksPage = () => {
                   
                   <DialogFooter>
                     <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                      Cancel
+                      キャンセル
                     </Button>
                     <Button type="submit" disabled={updateTaskMutation.isPending}>
                       {updateTaskMutation.isPending ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Saving...
+                          保存中...
                         </>
                       ) : (
-                        'Save Changes'
+                        '変更を保存'
                       )}
                     </Button>
                   </DialogFooter>
