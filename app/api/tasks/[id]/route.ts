@@ -1,126 +1,220 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { z } from 'zod';
 import { authOptions } from '../../auth/[...nextauth]/route';
 import { getTask, updateTask, deleteTask } from '../../../lib/db';
 
+// タスクIDとユーザーIDをパラメータとして取得するための型
+type TaskParams = {
+  params: {
+    id: string;
+  };
+};
+
+// 特定のタスクを取得するAPI
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: TaskParams
 ) {
   try {
-    // セッションの取得
-    const session = await getServerSession(authOptions);
-
-    // 未認証の場合は401エラー
-    if (!session) {
-      return NextResponse.json({ message: '認証が必要です' }, { status: 401 });
+    // タスクIDの取得
+    const taskId = parseInt(params.id);
+    
+    if (isNaN(taskId)) {
+      return NextResponse.json(
+        { error: '無効なタスクIDです' },
+        { status: 400 }
+      );
     }
 
-    const taskId = Number(params.id);
-    
+    // セッションからユーザー情報を取得
+    const session = await getServerSession(authOptions);
+
+    // 認証されていない場合
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: '認証が必要です' },
+        { status: 401 }
+      );
+    }
+
     // タスクの取得
     const task = await getTask(taskId);
     
-    // タスクが見つからない場合は404エラー
     if (!task) {
-      return NextResponse.json({ message: 'タスクが見つかりません' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'タスクが見つかりません' },
+        { status: 404 }
+      );
     }
-    
-    // 他のユーザーのタスクへのアクセスを防止
-    if (task.userId !== Number(session.user.id)) {
-      return NextResponse.json({ message: 'アクセス権限がありません' }, { status: 403 });
+
+    // タスクのユーザーIDとログインユーザーIDが一致するか確認
+    if (task.userId !== session.user.id) {
+      return NextResponse.json(
+        { error: 'このタスクへのアクセス権がありません' },
+        { status: 403 }
+      );
     }
     
     return NextResponse.json(task);
   } catch (error) {
     console.error('タスク取得エラー:', error);
     return NextResponse.json(
-      { message: 'タスクの取得中にエラーが発生しました' },
+      { error: 'タスクの取得に失敗しました' },
       { status: 500 }
     );
   }
 }
 
+// タスクを更新するAPI
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: TaskParams
 ) {
   try {
-    // セッションの取得
+    // タスクIDの取得
+    const taskId = parseInt(params.id);
+    
+    if (isNaN(taskId)) {
+      return NextResponse.json(
+        { error: '無効なタスクIDです' },
+        { status: 400 }
+      );
+    }
+
+    // セッションからユーザー情報を取得
     const session = await getServerSession(authOptions);
 
-    // 未認証の場合は401エラー
-    if (!session) {
-      return NextResponse.json({ message: '認証が必要です' }, { status: 401 });
+    // 認証されていない場合
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: '認証が必要です' },
+        { status: 401 }
+      );
     }
 
-    const taskId = Number(params.id);
-    
-    // タスクの取得（存在確認と所有者チェックのため）
+    // タスクの取得
     const existingTask = await getTask(taskId);
     
-    // タスクが見つからない場合は404エラー
     if (!existingTask) {
-      return NextResponse.json({ message: 'タスクが見つかりません' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'タスクが見つかりません' },
+        { status: 404 }
+      );
     }
-    
-    // 他のユーザーのタスクへのアクセスを防止
-    if (existingTask.userId !== Number(session.user.id)) {
-      return NextResponse.json({ message: 'アクセス権限がありません' }, { status: 403 });
+
+    // タスクのユーザーIDとログインユーザーIDが一致するか確認
+    if (existingTask.userId !== session.user.id) {
+      return NextResponse.json(
+        { error: 'このタスクへのアクセス権がありません' },
+        { status: 403 }
+      );
     }
-    
-    // リクエストボディの取得
+
+    // リクエストボディの解析
     const body = await request.json();
     
+    // バリデーションスキーマ
+    const taskUpdateSchema = z.object({
+      title: z.string().min(1, 'タイトルは必須です').optional(),
+      description: z.string().optional(),
+      dueDate: z.string().optional(),
+      completed: z.boolean().optional(),
+    });
+    
+    // バリデーション
+    const validationResult = taskUpdateSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { 
+          error: '入力内容に問題があります', 
+          details: validationResult.error.errors 
+        }, 
+        { status: 400 }
+      );
+    }
+
     // タスクの更新
-    const updatedTask = await updateTask(taskId, body);
+    const updatedTask = await updateTask(taskId, validationResult.data);
+    
+    if (!updatedTask) {
+      return NextResponse.json(
+        { error: 'タスクの更新に失敗しました' },
+        { status: 500 }
+      );
+    }
     
     return NextResponse.json(updatedTask);
   } catch (error) {
     console.error('タスク更新エラー:', error);
     return NextResponse.json(
-      { message: 'タスクの更新中にエラーが発生しました' },
+      { error: 'タスクの更新に失敗しました' },
       { status: 500 }
     );
   }
 }
 
+// タスクを削除するAPI
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: TaskParams
 ) {
   try {
-    // セッションの取得
+    // タスクIDの取得
+    const taskId = parseInt(params.id);
+    
+    if (isNaN(taskId)) {
+      return NextResponse.json(
+        { error: '無効なタスクIDです' },
+        { status: 400 }
+      );
+    }
+
+    // セッションからユーザー情報を取得
     const session = await getServerSession(authOptions);
 
-    // 未認証の場合は401エラー
-    if (!session) {
-      return NextResponse.json({ message: '認証が必要です' }, { status: 401 });
+    // 認証されていない場合
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: '認証が必要です' },
+        { status: 401 }
+      );
     }
 
-    const taskId = Number(params.id);
-    
-    // タスクの取得（存在確認と所有者チェックのため）
+    // タスクの取得
     const existingTask = await getTask(taskId);
     
-    // タスクが見つからない場合は404エラー
     if (!existingTask) {
-      return NextResponse.json({ message: 'タスクが見つかりません' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'タスクが見つかりません' },
+        { status: 404 }
+      );
     }
-    
-    // 他のユーザーのタスクへのアクセスを防止
-    if (existingTask.userId !== Number(session.user.id)) {
-      return NextResponse.json({ message: 'アクセス権限がありません' }, { status: 403 });
+
+    // タスクのユーザーIDとログインユーザーIDが一致するか確認
+    if (existingTask.userId !== session.user.id) {
+      return NextResponse.json(
+        { error: 'このタスクへのアクセス権がありません' },
+        { status: 403 }
+      );
     }
-    
+
     // タスクの削除
-    await deleteTask(taskId);
+    const result = await deleteTask(taskId);
     
-    return NextResponse.json({ success: true }, { status: 200 });
+    if (!result) {
+      return NextResponse.json(
+        { error: 'タスクの削除に失敗しました' },
+        { status: 500 }
+      );
+    }
+    
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('タスク削除エラー:', error);
     return NextResponse.json(
-      { message: 'タスクの削除中にエラーが発生しました' },
+      { error: 'タスクの削除に失敗しました' },
       { status: 500 }
     );
   }

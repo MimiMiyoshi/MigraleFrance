@@ -8,59 +8,117 @@ import { getTasksByUserId, getResponsesByUserId } from '../../lib/db';
  */
 export async function GET(request: NextRequest) {
   try {
-    // セッションの取得
+    // セッションからユーザー情報を取得
     const session = await getServerSession(authOptions);
 
-    // 未認証の場合は401エラー
-    if (!session) {
-      return NextResponse.json({ message: '認証が必要です' }, { status: 401 });
+    // 認証されていない場合
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: '認証が必要です' },
+        { status: 401 }
+      );
     }
 
-    // タスク一覧の取得
-    const tasks = await getTasksByUserId(Number(session.user.id));
+    // ユーザーのタスク一覧を取得
+    const tasks = await getTasksByUserId(session.user.id);
     
-    // ビザ回答一覧の取得
-    const responses = await getResponsesByUserId(Number(session.user.id));
-    
-    // 統計情報の計算
+    // ユーザーのビザ回答一覧を取得
+    const responses = await getResponsesByUserId(session.user.id);
+
+    // タスクの統計情報を計算
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter(task => task.completed).length;
+    const incompleteTasks = totalTasks - completedTasks;
     const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-    const pendingTasks = totalTasks - completedTasks;
-    
-    // 期限切れタスクの計算
+
+    // 期限切れのタスク数を計算
     const now = new Date();
-    const overdueTasks = tasks.filter(task => {
-      if (!task.dueDate || task.completed) return false;
-      const dueDate = new Date(task.dueDate);
-      return dueDate < now;
+    const overdueTasksCount = tasks.filter(task => {
+      if (!task.completed && task.dueDate) {
+        const dueDate = new Date(task.dueDate);
+        return dueDate < now;
+      }
+      return false;
     }).length;
+
+    // 今後の期限別タスク数
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     
-    // ビザタイプごとの回答数
-    const responsesByVisaType = {};
-    responses.forEach(response => {
-      const visaType = response.result;
-      responsesByVisaType[visaType] = (responsesByVisaType[visaType] || 0) + 1;
-    });
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
     
-    return NextResponse.json({
-      taskStats: {
+    const nextWeek = new Date(today);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    
+    const nextMonth = new Date(today);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+    // 期限別に未完了タスクを分類
+    const dueTodayCount = tasks.filter(task => {
+      if (!task.completed && task.dueDate) {
+        const dueDate = new Date(task.dueDate);
+        dueDate.setHours(0, 0, 0, 0);
+        return dueDate.getTime() === today.getTime();
+      }
+      return false;
+    }).length;
+
+    const dueTomorrowCount = tasks.filter(task => {
+      if (!task.completed && task.dueDate) {
+        const dueDate = new Date(task.dueDate);
+        dueDate.setHours(0, 0, 0, 0);
+        return dueDate.getTime() === tomorrow.getTime();
+      }
+      return false;
+    }).length;
+
+    const dueThisWeekCount = tasks.filter(task => {
+      if (!task.completed && task.dueDate) {
+        const dueDate = new Date(task.dueDate);
+        dueDate.setHours(0, 0, 0, 0);
+        return dueDate >= today && dueDate < nextWeek;
+      }
+      return false;
+    }).length;
+
+    const dueThisMonthCount = tasks.filter(task => {
+      if (!task.completed && task.dueDate) {
+        const dueDate = new Date(task.dueDate);
+        dueDate.setHours(0, 0, 0, 0);
+        return dueDate >= today && dueDate < nextMonth;
+      }
+      return false;
+    }).length;
+
+    // 最近のビザ結果
+    const latestResponse = responses.length > 0 ? responses[0] : null;
+    const latestResult = latestResponse ? latestResponse.result : null;
+
+    // 統計情報をまとめる
+    const stats = {
+      tasksStats: {
         total: totalTasks,
         completed: completedTasks,
-        pending: pendingTasks,
-        overdue: overdueTasks,
+        incomplete: incompleteTasks,
+        overdue: overdueTasksCount,
         completionRate,
+        dueToday: dueTodayCount,
+        dueTomorrow: dueTomorrowCount,
+        dueThisWeek: dueThisWeekCount,
+        dueThisMonth: dueThisMonthCount
       },
       visaStats: {
         totalResponses: responses.length,
-        responsesByType: responsesByVisaType,
-        latestResponse: responses.length > 0 ? responses[responses.length - 1] : null,
+        latestResult
       }
-    });
+    };
+    
+    return NextResponse.json(stats);
   } catch (error) {
     console.error('統計情報取得エラー:', error);
     return NextResponse.json(
-      { message: '統計情報の取得中にエラーが発生しました' },
+      { error: '統計情報の取得に失敗しました' },
       { status: 500 }
     );
   }
