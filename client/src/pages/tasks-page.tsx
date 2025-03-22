@@ -65,48 +65,93 @@ const TasksPage = () => {
   
   const isLoading = false;
   
-  const addTaskMutation = useMutation({
-    mutationFn: async (data: TaskFormValues) => {
-      const res = await apiRequest("POST", "/api/tasks", data);
-      return await res.json();
+  // モック：タスク追加ミューテーション
+  const [isAddingTask, setIsAddingTask] = useState(false);
+  const addTaskMutation = {
+    mutate: (data: TaskFormValues) => {
+      console.log("タスク追加:", data);
+      setIsAddingTask(true);
+      
+      // 追加処理のシミュレーション
+      setTimeout(() => {
+        // 新しいタスクを生成
+        const newTask: VisaTask = {
+          id: Math.max(...tasks.map(t => t.id), 0) + 1,
+          userId: 1,
+          title: data.title,
+          description: data.description || null,
+          dueDate: data.dueDate || null,
+          completed: false
+        };
+        
+        // タスクリストを更新
+        setTasks([...tasks, newTask]);
+        setIsAddingTask(false);
+        setIsAddDialogOpen(false);
+        form.reset();
+      }, 700);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
-      setIsAddDialogOpen(false);
-      form.reset();
-    }
-  });
+    isPending: isAddingTask
+  } as any;
   
-  const updateTaskMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number, data: Partial<VisaTask> }) => {
-      const res = await apiRequest("PUT", `/api/tasks/${id}`, data);
-      return await res.json();
+  // モック：タスク更新ミューテーション
+  const [isUpdatingTask, setIsUpdatingTask] = useState(false);
+  const updateTaskMutation = {
+    mutate: ({ id, data }: { id: number, data: Partial<VisaTask> }) => {
+      console.log("タスク更新:", id, data);
+      setIsUpdatingTask(true);
+      
+      // 更新処理のシミュレーション
+      setTimeout(() => {
+        // タスクを更新
+        setTasks(tasks.map(task => 
+          task.id === id ? { ...task, ...data } : task
+        ));
+        
+        setIsUpdatingTask(false);
+        setIsEditDialogOpen(false);
+        editForm.reset();
+      }, 700);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
-      setIsEditDialogOpen(false);
-      editForm.reset();
-    }
-  });
+    isPending: isUpdatingTask
+  } as any;
   
-  const deleteTaskMutation = useMutation({
-    mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/tasks/${id}`);
+  // モック：タスク削除ミューテーション
+  const [isDeletingTask, setIsDeletingTask] = useState(false);
+  const deleteTaskMutation = {
+    mutate: (id: number) => {
+      console.log("タスク削除:", id);
+      setIsDeletingTask(true);
+      
+      // 削除処理のシミュレーション
+      setTimeout(() => {
+        // タスクを削除
+        setTasks(tasks.filter(task => task.id !== id));
+        setIsDeletingTask(false);
+      }, 500);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
-    }
-  });
+    isPending: isDeletingTask
+  } as any;
   
-  const toggleCompleteMutation = useMutation({
-    mutationFn: async ({ id, completed }: { id: number, completed: boolean }) => {
-      const res = await apiRequest("PUT", `/api/tasks/${id}`, { completed });
-      return await res.json();
+  // モック：タスク完了状態切替ミューテーション
+  const [isTogglingTask, setIsTogglingTask] = useState(false);
+  const toggleCompleteMutation = {
+    mutate: ({ id, completed }: { id: number, completed: boolean }) => {
+      console.log("タスク状態変更:", id, completed);
+      setIsTogglingTask(true);
+      
+      // 完了状態切替処理のシミュレーション
+      setTimeout(() => {
+        // タスクの完了状態を更新
+        setTasks(tasks.map(task => 
+          task.id === id ? { ...task, completed } : task
+        ));
+        
+        setIsTogglingTask(false);
+      }, 300);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
-    }
-  });
+    isPending: isTogglingTask
+  } as any;
   
   // Add task form
   const form = useForm<TaskFormValues>({
