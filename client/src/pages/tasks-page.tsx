@@ -275,7 +275,7 @@ const TasksPage = () => {
           
           {/* Pending Tasks */}
           <div className="mb-8" id="task-list">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center" id="task-filters">
               <ListChecks className="mr-2 h-5 w-5 text-primary" />
               未完了タスク ({pendingTasks.length})
             </h2>
