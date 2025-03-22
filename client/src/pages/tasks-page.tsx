@@ -141,7 +141,7 @@ const TasksPage = () => {
   
   // Handler for deleting task
   const handleDeleteTask = (taskId: number) => {
-    if (confirm("Are you sure you want to delete this task?")) {
+    if (confirm("このタスクを削除してもよろしいですか？")) {
       deleteTaskMutation.mutate(taskId);
     }
   };
@@ -170,12 +170,12 @@ const TasksPage = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Visa Tasks</h1>
-              <p className="mt-1 text-gray-600">Track and manage your visa application tasks</p>
+              <h1 className="text-3xl font-bold text-gray-900">ビザタスク</h1>
+              <p className="mt-1 text-gray-600">ビザ申請タスクを追跡・管理する</p>
             </div>
             <Button onClick={() => setIsAddDialogOpen(true)}>
               <PlusCircle className="mr-2 h-4 w-4" />
-              Add Task
+              タスクを追加
             </Button>
           </div>
           
@@ -183,13 +183,13 @@ const TasksPage = () => {
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
               <ListChecks className="mr-2 h-5 w-5 text-primary" />
-              Pending Tasks ({pendingTasks.length})
+              未完了タスク ({pendingTasks.length})
             </h2>
             
             {pendingTasks.length === 0 ? (
               <Card>
                 <CardContent className="py-6">
-                  <p className="text-center text-gray-500">No pending tasks found. Add a new task to get started.</p>
+                  <p className="text-center text-gray-500">未完了のタスクはありません。新しいタスクを追加して始めましょう。</p>
                 </CardContent>
               </Card>
             ) : (
@@ -224,7 +224,7 @@ const TasksPage = () => {
                     {task.dueDate && (
                       <CardFooter className="py-2 text-sm text-gray-500 flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
-                        Due: {new Date(task.dueDate).toLocaleDateString()}
+                        期限: {new Date(task.dueDate).toLocaleDateString()}
                       </CardFooter>
                     )}
                   </Card>
@@ -238,7 +238,7 @@ const TasksPage = () => {
             <div>
               <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                 <Check className="mr-2 h-5 w-5 text-green-600" />
-                Completed Tasks ({completedTasks.length})
+                完了タスク ({completedTasks.length})
               </h2>
               
               <div className="space-y-4">
@@ -274,9 +274,9 @@ const TasksPage = () => {
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add New Task</DialogTitle>
+                <DialogTitle>新しいタスクを追加</DialogTitle>
                 <DialogDescription>
-                  Create a new task for your visa application process.
+                  ビザ申請プロセスのための新しいタスクを作成します。
                 </DialogDescription>
               </DialogHeader>
               
@@ -287,9 +287,9 @@ const TasksPage = () => {
                     name="title"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Task Title</FormLabel>
+                        <FormLabel>タスク名</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Prepare passport documents" {...field} />
+                          <Input placeholder="例：パスポートの準備" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -301,9 +301,9 @@ const TasksPage = () => {
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description (Optional)</FormLabel>
+                        <FormLabel>説明 (任意)</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Add details about this task" {...field} />
+                          <Textarea placeholder="このタスクの詳細を追加" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -315,7 +315,7 @@ const TasksPage = () => {
                     name="dueDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Due Date (Optional)</FormLabel>
+                        <FormLabel>期限日 (任意)</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} />
                         </FormControl>
@@ -326,16 +326,16 @@ const TasksPage = () => {
                   
                   <DialogFooter>
                     <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                      Cancel
+                      キャンセル
                     </Button>
                     <Button type="submit" disabled={addTaskMutation.isPending}>
                       {addTaskMutation.isPending ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Adding...
+                          追加中...
                         </>
                       ) : (
-                        'Add Task'
+                        'タスクを追加'
                       )}
                     </Button>
                   </DialogFooter>

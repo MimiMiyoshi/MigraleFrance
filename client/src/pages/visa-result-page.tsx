@@ -128,8 +128,9 @@ const VisaResultPage = () => {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-grow flex items-center justify-center">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <main className="flex-grow flex flex-col items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+          <p className="text-gray-600">読み込み中...</p>
         </main>
         <Footer />
       </div>
@@ -146,15 +147,15 @@ const VisaResultPage = () => {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <AlertCircle className="h-5 w-5 text-red-500" />
-                  <CardTitle>Error</CardTitle>
+                  <CardTitle>エラー</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <p>Could not load visa recommendation. Please try again or return to the questionnaire.</p>
+                <p>ビザ推奨情報を読み込めませんでした。もう一度お試しいただくか、アンケートに戻ってください。</p>
               </CardContent>
               <CardFooter>
                 <Button onClick={() => navigate("/questionnaire")}>
-                  Return to Questionnaire
+                  アンケートに戻る
                 </Button>
               </CardFooter>
             </Card>
@@ -210,15 +211,15 @@ const VisaResultPage = () => {
           </Card>
           
           <div className="mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Recommended Tasks</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">推奨タスク</h2>
             <p className="text-gray-600 mb-4">
-              Here are the key tasks you should complete to apply for this visa. Select the tasks you want to add to your task list.
+              このビザを申請するために完了すべき主要なタスクは以下の通りです。タスクリストに追加したいタスクを選択してください。
             </p>
           </div>
           
           <Card className="shadow-lg mb-8">
             <CardHeader>
-              <CardTitle className="text-lg">Required Documents & Tasks</CardTitle>
+              <CardTitle className="text-lg">必要書類とタスク</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -246,7 +247,7 @@ const VisaResultPage = () => {
             <CardFooter className="flex justify-between">
               <Button variant="outline" onClick={() => navigate("/")}>
                 <Home className="mr-2 h-4 w-4" />
-                Back to Home
+                ホームに戻る
               </Button>
               <Button 
                 onClick={handleAddSelectedTasks}
@@ -255,12 +256,12 @@ const VisaResultPage = () => {
                 {addTasksMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Adding Tasks...
+                    追加中...
                   </>
                 ) : (
                   <>
                     <List className="mr-2 h-4 w-4" />
-                    Add to Task List
+                    タスクリストに追加
                   </>
                 )}
               </Button>
@@ -269,7 +270,7 @@ const VisaResultPage = () => {
           
           <div className="text-center">
             <p className="text-sm text-gray-500">
-              Note: This recommendation is based on the information you provided and serves as a guide only. For official advice, please consult the French consulate or embassy in your country.
+              注意：この推奨事項はあなたが提供した情報に基づいており、ガイドとしてのみ機能します。公式なアドバイスについては、お住まいの国のフランス領事館または大使館にご相談ください。
             </p>
           </div>
         </div>
