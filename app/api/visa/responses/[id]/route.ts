@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../auth/[...nextauth]/route';
-import { getResponse } from '../../../../lib/db';
+import { getResponse } from '@/lib/db';
 
 type ResponseParams = {
   params: {
@@ -16,7 +16,7 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session) {
+    if (!session?.user) {
       return NextResponse.json(
         { error: '認証されていません' },
         { status: 401 }
@@ -31,28 +31,28 @@ export async function GET(
       );
     }
     
-    const response = await getResponse(responseId);
+    const visaResponse = await getResponse(responseId);
     
-    if (!response) {
+    if (!visaResponse) {
       return NextResponse.json(
         { error: 'ビザ回答が見つかりません' },
         { status: 404 }
       );
     }
     
-    // 他のユーザーの回答へのアクセスを防止
-    if (response.userId !== session.user.id) {
+    // 自分の回答かどうか確認
+    if (visaResponse.userId !== session.user.id) {
       return NextResponse.json(
-        { error: 'この回答へのアクセス権がありません' },
+        { error: 'この回答にアクセスする権限がありません' },
         { status: 403 }
       );
     }
     
-    return NextResponse.json(response);
+    return NextResponse.json(visaResponse);
   } catch (error) {
     console.error('ビザ回答取得エラー:', error);
     return NextResponse.json(
-      { error: 'ビザ回答の取得中にエラーが発生しました' },
+      { error: 'ビザ回答の取得に失敗しました' },
       { status: 500 }
     );
   }

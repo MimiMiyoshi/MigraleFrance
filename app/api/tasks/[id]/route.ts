@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/route';
-import { getTask, updateTask, deleteTask } from '../../../lib/db';
+import { getTask, updateTask, deleteTask } from '@/lib/db';
+import { z } from 'zod';
 
 type TaskParams = {
   params: {
@@ -16,7 +17,7 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session) {
+    if (!session?.user) {
       return NextResponse.json(
         { error: '認証されていません' },
         { status: 401 }
@@ -40,10 +41,10 @@ export async function GET(
       );
     }
     
-    // 他のユーザーのタスクへのアクセスを防止
+    // 自分のタスクかどうか確認
     if (task.userId !== session.user.id) {
       return NextResponse.json(
-        { error: 'このタスクへのアクセス権がありません' },
+        { error: 'このタスクにアクセスする権限がありません' },
         { status: 403 }
       );
     }
@@ -52,7 +53,7 @@ export async function GET(
   } catch (error) {
     console.error('タスク取得エラー:', error);
     return NextResponse.json(
-      { error: 'タスクの取得中にエラーが発生しました' },
+      { error: 'タスクの取得に失敗しました' },
       { status: 500 }
     );
   }
@@ -65,7 +66,7 @@ export async function PATCH(
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session) {
+    if (!session?.user) {
       return NextResponse.json(
         { error: '認証されていません' },
         { status: 401 }
@@ -80,7 +81,7 @@ export async function PATCH(
       );
     }
     
-    // 既存のタスクを取得
+    // 更新前にタスクを取得して権限チェック
     const existingTask = await getTask(taskId);
     
     if (!existingTask) {
@@ -90,22 +91,34 @@ export async function PATCH(
       );
     }
     
-    // 他のユーザーのタスクの更新を防止
+    // 自分のタスクかどうか確認
     if (existingTask.userId !== session.user.id) {
       return NextResponse.json(
-        { error: 'このタスクの更新権限がありません' },
+        { error: 'このタスクを更新する権限がありません' },
         { status: 403 }
       );
     }
     
     const body = await request.json();
     
-    // ユーザーIDの変更を防止
-    delete body.userId;
-    delete body.id;
+    // 更新可能なフィールドをバリデーション
+    const updateTaskSchema = z.object({
+      title: z.string().optional(),
+      description: z.string().optional(),
+      completed: z.boolean().optional(),
+      dueDate: z.string().optional(),
+    });
     
-    // タスクを更新
-    const updatedTask = await updateTask(taskId, body);
+    const validationResult = updateTaskSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: '入力データが不正です', details: validationResult.error.format() },
+        { status: 400 }
+      );
+    }
+    
+    // タスク更新
+    const updatedTask = await updateTask(taskId, validationResult.data);
     
     if (!updatedTask) {
       return NextResponse.json(
@@ -118,7 +131,7 @@ export async function PATCH(
   } catch (error) {
     console.error('タスク更新エラー:', error);
     return NextResponse.json(
-      { error: 'タスクの更新中にエラーが発生しました' },
+      { error: 'タスクの更新に失敗しました' },
       { status: 500 }
     );
   }
@@ -131,7 +144,7 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session) {
+    if (!session?.user) {
       return NextResponse.json(
         { error: '認証されていません' },
         { status: 401 }
@@ -146,7 +159,7 @@ export async function DELETE(
       );
     }
     
-    // 既存のタスクを取得
+    // 削除前にタスクを取得して権限チェック
     const existingTask = await getTask(taskId);
     
     if (!existingTask) {
@@ -156,18 +169,18 @@ export async function DELETE(
       );
     }
     
-    // 他のユーザーのタスクの削除を防止
+    // 自分のタスクかどうか確認
     if (existingTask.userId !== session.user.id) {
       return NextResponse.json(
-        { error: 'このタスクの削除権限がありません' },
+        { error: 'このタスクを削除する権限がありません' },
         { status: 403 }
       );
     }
     
-    // タスクを削除
-    const success = await deleteTask(taskId);
+    // タスク削除
+    const result = await deleteTask(taskId);
     
-    if (!success) {
+    if (!result) {
       return NextResponse.json(
         { error: 'タスクの削除に失敗しました' },
         { status: 500 }
@@ -178,7 +191,7 @@ export async function DELETE(
   } catch (error) {
     console.error('タスク削除エラー:', error);
     return NextResponse.json(
-      { error: 'タスクの削除中にエラーが発生しました' },
+      { error: 'タスクの削除に失敗しました' },
       { status: 500 }
     );
   }
