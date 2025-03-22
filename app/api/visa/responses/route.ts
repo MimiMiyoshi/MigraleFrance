@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../../auth/[...nextauth]/route';
 import * as db from '@/app/lib/db';
-import { InsertVisaResponse } from '../../../../shared/schema';
+import { insertVisaResponseSchema } from '@/shared/schema';
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     
     // 未認証の場合は401エラー
     if (!session || !session.user) {
-      return new NextResponse(null, { status: 401 });
+      return NextResponse.json(null, { status: 401 });
     }
     
     // ユーザーIDに関連するビザ回答を取得
@@ -19,9 +19,9 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json(responses);
   } catch (error) {
-    console.error('ビザ回答一覧取得エラー:', error);
+    console.error('ビザ回答取得エラー:', error);
     return NextResponse.json(
-      { message: 'ビザ回答一覧の取得中にエラーが発生しました' },
+      { message: 'ビザ回答の取得中にエラーが発生しました' },
       { status: 500 }
     );
   }
@@ -34,36 +34,35 @@ export async function POST(request: NextRequest) {
     
     // 未認証の場合は401エラー
     if (!session || !session.user) {
-      return new NextResponse(null, { status: 401 });
+      return NextResponse.json(null, { status: 401 });
     }
     
-    // リクエストのボディを取得
+    // リクエストボディからビザ回答データを取得
     const body = await request.json();
     
-    // 必須フィールドの確認
-    if (!body.responses || !body.result) {
+    // 入力データを検証
+    const result = insertVisaResponseSchema.safeParse(body);
+    if (!result.success) {
       return NextResponse.json(
-        { message: '回答内容とビザタイプの結果は必須です' },
+        { message: '入力データが不正です', errors: result.error.format() },
         { status: 400 }
       );
     }
     
-    // ビザ回答データの作成
-    const responseData: InsertVisaResponse = {
+    // ビザ回答を作成
+    const responseData = {
       userId: session.user.id,
       responses: body.responses,
-      result: body.result,
-      createdAt: new Date().toISOString(),
+      result: body.result
     };
     
-    // ビザ回答を保存
-    const newResponse = await db.createResponse(responseData);
+    const response = await db.createResponse(responseData);
     
-    return NextResponse.json(newResponse, { status: 201 });
-  } catch (error: any) {
-    console.error('ビザ回答保存エラー:', error);
+    return NextResponse.json(response, { status: 201 });
+  } catch (error) {
+    console.error('ビザ回答作成エラー:', error);
     return NextResponse.json(
-      { message: error.message || 'ビザ回答の保存中にエラーが発生しました' },
+      { message: 'ビザ回答の作成中にエラーが発生しました' },
       { status: 500 }
     );
   }

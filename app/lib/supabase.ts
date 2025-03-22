@@ -1,10 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_KEY || '';
+const supabaseUrl = process.env.SUPABASE_URL as string;
+const supabaseKey = process.env.SUPABASE_KEY as string;
 
 if (!supabaseUrl || !supabaseKey) {
-  console.warn('Supabase環境変数が設定されていません。データベース機能は機能しない可能性があります。');
+  console.error('SUPABASE_URL または SUPABASE_KEY が設定されていません');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseKey);

@@ -2,33 +2,37 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../../auth/[...nextauth]/route';
 import * as db from '@/app/lib/db';
+import { z } from 'zod';
+
+// タスク更新スキーマ
+const updateTaskSchema = z.object({
+  title: z.string().min(1, { message: 'タイトルは必須です' }).optional(),
+  description: z.string().optional().nullable(),
+  dueDate: z.string().optional().nullable(),
+  completed: z.boolean().optional(),
+});
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    // セッションからユーザー情報を取得
     const session = await getServerSession(authOptions);
     
-    // 未認証の場合は401エラー
     if (!session || !session.user) {
-      return new NextResponse(null, { status: 401 });
+      return NextResponse.json(null, { status: 401 });
     }
     
-    // タスクIDを数値に変換
     const taskId = parseInt(params.id);
     if (isNaN(taskId)) {
       return NextResponse.json(
-        { message: '無効なタスクIDです' },
+        { message: '不正なタスクIDです' },
         { status: 400 }
       );
     }
     
-    // タスクを取得
     const task = await db.getTask(taskId);
     
-    // タスクが存在しない場合は404エラー
     if (!task) {
       return NextResponse.json(
         { message: 'タスクが見つかりません' },
@@ -36,19 +40,19 @@ export async function GET(
       );
     }
     
-    // 他のユーザーのタスクは閲覧不可
+    // 他のユーザーのタスクへのアクセスを防止
     if (task.userId !== session.user.id) {
       return NextResponse.json(
-        { message: 'このタスクにアクセスする権限がありません' },
+        { message: 'このタスクへのアクセス権限がありません' },
         { status: 403 }
       );
     }
     
     return NextResponse.json(task);
   } catch (error) {
-    console.error('タスク取得エラー:', error);
+    console.error('タスク詳細取得エラー:', error);
     return NextResponse.json(
-      { message: 'タスクの取得中にエラーが発生しました' },
+      { message: 'タスク詳細の取得中にエラーが発生しました' },
       { status: 500 }
     );
   }
@@ -59,27 +63,23 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    // セッションからユーザー情報を取得
     const session = await getServerSession(authOptions);
     
-    // 未認証の場合は401エラー
     if (!session || !session.user) {
-      return new NextResponse(null, { status: 401 });
+      return NextResponse.json(null, { status: 401 });
     }
     
-    // タスクIDを数値に変換
     const taskId = parseInt(params.id);
     if (isNaN(taskId)) {
       return NextResponse.json(
-        { message: '無効なタスクIDです' },
+        { message: '不正なタスクIDです' },
         { status: 400 }
       );
     }
     
-    // 既存のタスクを取得
+    // タスクの存在確認
     const existingTask = await db.getTask(taskId);
     
-    // タスクが存在しない場合は404エラー
     if (!existingTask) {
       return NextResponse.json(
         { message: 'タスクが見つかりません' },
@@ -87,27 +87,28 @@ export async function PATCH(
       );
     }
     
-    // 他のユーザーのタスクは編集不可
+    // 他のユーザーのタスクの更新を防止
     if (existingTask.userId !== session.user.id) {
       return NextResponse.json(
-        { message: 'このタスクを編集する権限がありません' },
+        { message: 'このタスクの更新権限がありません' },
         { status: 403 }
       );
     }
     
-    // リクエストのボディを取得
+    // リクエストボディからデータを取得
     const body = await request.json();
     
-    // 更新データの作成（undefined値は除外）
-    const updateData: any = {};
-    
-    if (body.title !== undefined) updateData.title = body.title;
-    if (body.description !== undefined) updateData.description = body.description;
-    if (body.dueDate !== undefined) updateData.dueDate = body.dueDate;
-    if (body.completed !== undefined) updateData.completed = body.completed;
+    // 入力データを検証
+    const result = updateTaskSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        { message: '入力データが不正です', errors: result.error.format() },
+        { status: 400 }
+      );
+    }
     
     // タスクを更新
-    const updatedTask = await db.updateTask(taskId, updateData);
+    const updatedTask = await db.updateTask(taskId, body);
     
     if (!updatedTask) {
       return NextResponse.json(
@@ -117,10 +118,10 @@ export async function PATCH(
     }
     
     return NextResponse.json(updatedTask);
-  } catch (error: any) {
+  } catch (error) {
     console.error('タスク更新エラー:', error);
     return NextResponse.json(
-      { message: error.message || 'タスクの更新中にエラーが発生しました' },
+      { message: 'タスクの更新中にエラーが発生しました' },
       { status: 500 }
     );
   }
@@ -131,27 +132,23 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    // セッションからユーザー情報を取得
     const session = await getServerSession(authOptions);
     
-    // 未認証の場合は401エラー
     if (!session || !session.user) {
-      return new NextResponse(null, { status: 401 });
+      return NextResponse.json(null, { status: 401 });
     }
     
-    // タスクIDを数値に変換
     const taskId = parseInt(params.id);
     if (isNaN(taskId)) {
       return NextResponse.json(
-        { message: '無効なタスクIDです' },
+        { message: '不正なタスクIDです' },
         { status: 400 }
       );
     }
     
-    // 既存のタスクを取得
+    // タスクの存在確認
     const existingTask = await db.getTask(taskId);
     
-    // タスクが存在しない場合は404エラー
     if (!existingTask) {
       return NextResponse.json(
         { message: 'タスクが見つかりません' },
@@ -159,10 +156,10 @@ export async function DELETE(
       );
     }
     
-    // 他のユーザーのタスクは削除不可
+    // 他のユーザーのタスクの削除を防止
     if (existingTask.userId !== session.user.id) {
       return NextResponse.json(
-        { message: 'このタスクを削除する権限がありません' },
+        { message: 'このタスクの削除権限がありません' },
         { status: 403 }
       );
     }

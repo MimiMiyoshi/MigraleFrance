@@ -1,59 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { InsertUser } from '../../../shared/schema';
+import { insertUserSchema } from '@/shared/schema';
 import { hashPassword } from '@/app/utils/auth';
 import * as db from '@/app/lib/db';
 
 export async function POST(request: NextRequest) {
-  // リクエストのボディを取得
   try {
+    // リクエストボディからユーザーデータを取得
     const body = await request.json();
     
-    // 必須フィールドの確認
-    if (!body.username || !body.email || !body.password) {
+    // 入力データを検証
+    const result = insertUserSchema.safeParse(body);
+    if (!result.success) {
       return NextResponse.json(
-        { message: '必須フィールドがありません' },
+        { message: '入力データが不正です', errors: result.error.format() },
         { status: 400 }
       );
     }
     
-    // 既存ユーザーの確認
-    const existingByUsername = await db.getUserByUsername(body.username);
-    if (existingByUsername) {
+    // ユーザー名とメールアドレスの重複チェック
+    const existingUsername = await db.getUserByUsername(body.username);
+    if (existingUsername) {
       return NextResponse.json(
-        { message: 'このユーザー名は既に使用されています' },
+        { message: 'このユーザー名はすでに使用されています' },
         { status: 400 }
       );
     }
     
-    const existingByEmail = await db.getUserByEmail(body.email);
-    if (existingByEmail) {
+    const existingEmail = await db.getUserByEmail(body.email);
+    if (existingEmail) {
       return NextResponse.json(
-        { message: 'このメールアドレスは既に使用されています' },
+        { message: 'このメールアドレスはすでに登録されています' },
         { status: 400 }
       );
     }
     
-    // パスワードのハッシュ化
+    // パスワードをハッシュ化
     const hashedPassword = await hashPassword(body.password);
     
-    // ユーザーの作成
-    const userData: InsertUser = {
+    // ユーザーを作成
+    const userData = {
       username: body.username,
       email: body.email,
-      password: hashedPassword,
-      createdAt: new Date().toISOString(),
+      password: hashedPassword
     };
     
-    const newUser = await db.createUser(userData);
+    const user = await db.createUser(userData);
     
-    // パスワードを除いてレスポンスを返す
-    const { password, ...userWithoutPassword } = newUser;
+    // パスワードを除外してレスポンスを返す
+    const { password, ...userWithoutPassword } = user;
     
     return NextResponse.json(userWithoutPassword, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('ユーザー登録エラー:', error);
     return NextResponse.json(
-      { message: error.message || 'ユーザー登録中にエラーが発生しました' },
+      { message: 'ユーザー登録中にエラーが発生しました' },
       { status: 500 }
     );
   }
