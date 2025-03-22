@@ -277,13 +277,20 @@ const VisaResultPage = () => {
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={() => navigate("/")}>
-                <Home className="mr-2 h-4 w-4" />
-                ホームに戻る
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => navigate("/")}>
+                  <Home className="mr-2 h-4 w-4" />
+                  ホームに戻る
+                </Button>
+                <Button variant="outline" onClick={() => navigate("/tasks")}>
+                  <List className="mr-2 h-4 w-4" />
+                  タスク管理へ
+                </Button>
+              </div>
               <Button 
                 onClick={handleAddSelectedTasks}
                 disabled={selectedTasks.every(selected => !selected) || addTasksMutation.isPending}
+                className="bg-primary hover:bg-primary/90"
               >
                 {addTasksMutation.isPending ? (
                   <>
@@ -293,7 +300,7 @@ const VisaResultPage = () => {
                 ) : (
                   <>
                     <List className="mr-2 h-4 w-4" />
-                    タスクリストに追加
+                    選択したタスクを追加
                   </>
                 )}
               </Button>
