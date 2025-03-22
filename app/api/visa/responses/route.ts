@@ -1,62 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/route';
-import * as db from '@/app/lib/db';
-import { insertVisaResponseSchema } from '@/shared/schema';
+import { getResponsesByUserId, createResponse } from '../../../lib/db';
+import { insertVisaResponseSchema } from '../../../shared/schema';
 
+/**
+ * ユーザーのビザ回答一覧を取得するAPI
+ */
 export async function GET(request: NextRequest) {
   try {
-    // セッションからユーザー情報を取得
+    // セッションの取得
     const session = await getServerSession(authOptions);
-    
+
     // 未認証の場合は401エラー
-    if (!session || !session.user) {
-      return NextResponse.json(null, { status: 401 });
+    if (!session) {
+      return NextResponse.json({ message: '認証が必要です' }, { status: 401 });
     }
-    
-    // ユーザーIDに関連するビザ回答を取得
-    const responses = await db.getResponsesByUserId(session.user.id);
+
+    // ビザ回答一覧の取得
+    const responses = await getResponsesByUserId(Number(session.user.id));
     
     return NextResponse.json(responses);
   } catch (error) {
-    console.error('ビザ回答取得エラー:', error);
+    console.error('ビザ回答一覧取得エラー:', error);
     return NextResponse.json(
-      { message: 'ビザ回答の取得中にエラーが発生しました' },
+      { message: 'ビザ回答一覧の取得中にエラーが発生しました' },
       { status: 500 }
     );
   }
 }
 
+/**
+ * 新しいビザ回答を作成するAPI
+ */
 export async function POST(request: NextRequest) {
   try {
-    // セッションからユーザー情報を取得
+    // セッションの取得
     const session = await getServerSession(authOptions);
-    
+
     // 未認証の場合は401エラー
-    if (!session || !session.user) {
-      return NextResponse.json(null, { status: 401 });
+    if (!session) {
+      return NextResponse.json({ message: '認証が必要です' }, { status: 401 });
     }
-    
-    // リクエストボディからビザ回答データを取得
+
+    // リクエストボディの取得
     const body = await request.json();
-    
-    // 入力データを検証
+
+    // バリデーション
     const result = insertVisaResponseSchema.safeParse(body);
     if (!result.success) {
       return NextResponse.json(
-        { message: '入力データが不正です', errors: result.error.format() },
+        { message: '無効なビザ回答データです', errors: result.error.errors },
         { status: 400 }
       );
     }
-    
-    // ビザ回答を作成
-    const responseData = {
-      userId: session.user.id,
-      responses: body.responses,
-      result: body.result
-    };
-    
-    const response = await db.createResponse(responseData);
+
+    // ビザ回答の作成（ユーザーIDを設定）
+    const response = await createResponse({
+      ...body,
+      userId: Number(session.user.id),
+    });
     
     return NextResponse.json(response, { status: 201 });
   } catch (error) {

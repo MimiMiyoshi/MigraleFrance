@@ -1,49 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../auth/[...nextauth]/route';
-import * as db from '@/app/lib/db';
+import { getResponse } from '../../../../lib/db';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    // セッションの取得
     const session = await getServerSession(authOptions);
-    
-    if (!session || !session.user) {
-      return NextResponse.json(null, { status: 401 });
+
+    // 未認証の場合は401エラー
+    if (!session) {
+      return NextResponse.json({ message: '認証が必要です' }, { status: 401 });
     }
+
+    const responseId = Number(params.id);
     
-    const responseId = parseInt(params.id);
-    if (isNaN(responseId)) {
-      return NextResponse.json(
-        { message: '不正なレスポンスIDです' },
-        { status: 400 }
-      );
-    }
+    // ビザ回答の取得
+    const response = await getResponse(responseId);
     
-    const visaResponse = await db.getResponse(responseId);
-    
-    if (!visaResponse) {
-      return NextResponse.json(
-        { message: 'ビザ回答が見つかりません' },
-        { status: 404 }
-      );
+    // ビザ回答が見つからない場合は404エラー
+    if (!response) {
+      return NextResponse.json({ message: 'ビザ回答が見つかりません' }, { status: 404 });
     }
     
     // 他のユーザーのビザ回答へのアクセスを防止
-    if (visaResponse.userId !== session.user.id) {
-      return NextResponse.json(
-        { message: 'このビザ回答へのアクセス権限がありません' },
-        { status: 403 }
-      );
+    if (response.userId !== Number(session.user.id)) {
+      return NextResponse.json({ message: 'アクセス権限がありません' }, { status: 403 });
     }
     
-    return NextResponse.json(visaResponse);
+    return NextResponse.json(response);
   } catch (error) {
-    console.error('ビザ回答詳細取得エラー:', error);
+    console.error('ビザ回答取得エラー:', error);
     return NextResponse.json(
-      { message: 'ビザ回答詳細の取得中にエラーが発生しました' },
+      { message: 'ビザ回答の取得中にエラーが発生しました' },
       { status: 500 }
     );
   }
