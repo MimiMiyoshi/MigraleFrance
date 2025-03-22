@@ -28,7 +28,7 @@ const Header = () => {
             <Link href="/">
               <a className="flex-shrink-0 flex items-center">
                 <Home className="h-8 w-8 text-primary" />
-                <span className="ml-2 text-lg font-semibold text-gray-900">フランスホーム</span>
+                <span className="ml-2 text-lg font-semibold text-gray-900">Migrale</span>
               </a>
             </Link>
             {user && (
