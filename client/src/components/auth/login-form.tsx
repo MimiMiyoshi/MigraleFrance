@@ -39,8 +39,8 @@ const LoginForm = () => {
   return (
     <Card className="shadow-lg">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Welcome back</CardTitle>
-        <CardDescription>Sign in to continue your journey to France</CardDescription>
+        <CardTitle className="text-2xl">おかえりなさい</CardTitle>
+        <CardDescription>フランスへの旅を続けるにはログインしてください</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -50,10 +50,10 @@ const LoginForm = () => {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel>ユーザー名</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="your_username" 
+                      placeholder="あなたのユーザー名" 
                       {...field} 
                       autoComplete="username" 
                     />
@@ -69,9 +69,9 @@ const LoginForm = () => {
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-center justify-between">
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>パスワード</FormLabel>
                     <a href="#" className="text-sm font-medium text-primary hover:text-primary-dark">
-                      Forgot password?
+                      パスワードをお忘れですか？
                     </a>
                   </div>
                   <FormControl>
@@ -95,10 +95,10 @@ const LoginForm = () => {
               {loginMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
+                  ログイン中...
                 </>
               ) : (
-                'Sign in'
+                'ログイン'
               )}
             </Button>
           </form>
@@ -110,7 +110,7 @@ const LoginForm = () => {
               <Separator />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              <span className="px-2 bg-white text-gray-500">または、次の方法で続ける</span>
             </div>
           </div>
           

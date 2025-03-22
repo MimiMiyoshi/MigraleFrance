@@ -51,8 +51,8 @@ const RegisterForm = () => {
   return (
     <Card className="shadow-lg">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Create your account</CardTitle>
-        <CardDescription>Start your journey to living in France</CardDescription>
+        <CardTitle className="text-2xl">アカウント作成</CardTitle>
+        <CardDescription>フランス滞在への旅を始めましょう</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -62,9 +62,9 @@ const RegisterForm = () => {
               name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full name</FormLabel>
+                  <FormLabel>氏名</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} autoComplete="name" />
+                    <Input placeholder="山田 太郎" {...field} autoComplete="name" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -76,9 +76,9 @@ const RegisterForm = () => {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel>ユーザー名</FormLabel>
                   <FormControl>
-                    <Input placeholder="johndoe" {...field} autoComplete="username" />
+                    <Input placeholder="ユーザー名を入力" {...field} autoComplete="username" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -90,9 +90,9 @@ const RegisterForm = () => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email address</FormLabel>
+                  <FormLabel>メールアドレス</FormLabel>
                   <FormControl>
-                    <Input placeholder="your@email.com" {...field} autoComplete="email" />
+                    <Input placeholder="example@email.com" {...field} autoComplete="email" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
