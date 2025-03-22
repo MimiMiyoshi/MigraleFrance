@@ -26,7 +26,6 @@ type RegisterData = {
   username: string;
   email: string;
   password: string;
-  fullName: string;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -51,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Login successful",
-        description: `Welcome back, ${user.fullName}!`,
+        description: `Welcome back, ${user.username}!`,
       });
     },
     onError: (error: Error) => {
@@ -72,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Registration successful",
-        description: `Welcome, ${user.fullName}!`,
+        description: `Welcome, ${user.username}!`,
       });
     },
     onError: (error: Error) => {

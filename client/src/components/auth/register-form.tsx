@@ -11,7 +11,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 
 const registerSchema = z.object({
-  fullName: z.string().min(2, { message: "氏名は2文字以上で入力してください" }),
   username: z.string().min(3, { message: "ユーザー名は3文字以上で入力してください" }),
   email: z.string().email({ message: "有効なメールアドレスを入力してください" }),
   password: z.string().min(6, { message: "パスワードは6文字以上で入力してください" }),
@@ -30,7 +29,6 @@ const RegisterForm = () => {
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      fullName: "",
       username: "",
       email: "",
       password: "",
@@ -41,7 +39,6 @@ const RegisterForm = () => {
   
   const onSubmit = (values: RegisterFormValues) => {
     registerMutation.mutate({
-      fullName: values.fullName,
       username: values.username,
       email: values.email,
       password: values.password,
@@ -57,20 +54,7 @@ const RegisterForm = () => {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="fullName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>氏名</FormLabel>
-                  <FormControl>
-                    <Input placeholder="山田 太郎" {...field} autoComplete="name" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
+
             <FormField
               control={form.control}
               name="username"
