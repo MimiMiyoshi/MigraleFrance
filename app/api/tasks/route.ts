@@ -1,33 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { z } from 'zod';
+import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]/route';
 import { getTasksByUserId, createTask } from '../../lib/db';
+import { insertVisaTaskSchema } from '../../shared/schema';
 
 /**
  * ユーザーのタスク一覧を取得するAPI
  */
 export async function GET(request: NextRequest) {
   try {
-    // セッションからユーザー情報を取得
     const session = await getServerSession(authOptions);
-
-    // 認証されていない場合
-    if (!session || !session.user) {
+    
+    if (!session) {
       return NextResponse.json(
-        { error: '認証が必要です' },
+        { error: '認証されていません' },
         { status: 401 }
       );
     }
-
-    // ユーザーのタスク一覧を取得
-    const tasks = await getTasksByUserId(session.user.id);
+    
+    const userId = session.user.id;
+    const tasks = await getTasksByUserId(userId);
     
     return NextResponse.json(tasks);
   } catch (error) {
     console.error('タスク一覧取得エラー:', error);
     return NextResponse.json(
-      { error: 'タスク一覧の取得に失敗しました' },
+      { error: 'タスク一覧の取得中にエラーが発生しました' },
       { status: 500 }
     );
   }
@@ -38,55 +36,38 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // セッションからユーザー情報を取得
     const session = await getServerSession(authOptions);
-
-    // 認証されていない場合
-    if (!session || !session.user) {
+    
+    if (!session) {
       return NextResponse.json(
-        { error: '認証が必要です' },
+        { error: '認証されていません' },
         { status: 401 }
       );
     }
-
-    // リクエストボディの解析
+    
+    const userId = session.user.id;
     const body = await request.json();
     
-    // バリデーションスキーマ
-    const taskSchema = z.object({
-      title: z.string().min(1, 'タイトルは必須です'),
-      description: z.string().optional(),
-      dueDate: z.string().optional(),
-    });
+    // ユーザーIDをリクエストボディにセット
+    const taskData = { ...body, userId };
     
     // バリデーション
-    const validationResult = taskSchema.safeParse(body);
-    
+    const validationResult = insertVisaTaskSchema.safeParse(taskData);
     if (!validationResult.success) {
       return NextResponse.json(
-        { 
-          error: '入力内容に問題があります', 
-          details: validationResult.error.errors 
-        }, 
+        { error: '無効な入力データです', details: validationResult.error.errors },
         { status: 400 }
       );
     }
-
-    const { title, description, dueDate } = validationResult.data;
-
-    // タスクの作成
-    const task = await createTask({
-      userId: session.user.id,
-      title,
-      description,
-      dueDate
-    });
     
-    return NextResponse.json(task, { status: 201 });
+    // タスクの作成
+    const newTask = await createTask(validationResult.data);
+    
+    return NextResponse.json(newTask, { status: 201 });
   } catch (error) {
     console.error('タスク作成エラー:', error);
     return NextResponse.json(
-      { error: 'タスクの作成に失敗しました' },
+      { error: 'タスクの作成中にエラーが発生しました' },
       { status: 500 }
     );
   }

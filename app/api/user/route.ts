@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]/route';
 import { getUser } from '../../lib/db';
 
@@ -8,19 +8,17 @@ import { getUser } from '../../lib/db';
  */
 export async function GET(request: NextRequest) {
   try {
-    // セッションからユーザー情報を取得
     const session = await getServerSession(authOptions);
-
-    // 認証されていない場合
-    if (!session || !session.user) {
+    
+    if (!session) {
       return NextResponse.json(
-        { error: '認証が必要です' },
+        { error: '認証されていません' },
         { status: 401 }
       );
     }
-
-    // DBからユーザー詳細情報を取得
-    const user = await getUser(session.user.id);
+    
+    const userId = session.user.id;
+    const user = await getUser(userId);
     
     if (!user) {
       return NextResponse.json(
@@ -28,7 +26,7 @@ export async function GET(request: NextRequest) {
         { status: 404 }
       );
     }
-
+    
     // パスワードを除いたユーザー情報を返す
     const { password, ...userWithoutPassword } = user;
     
@@ -36,7 +34,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('ユーザー情報取得エラー:', error);
     return NextResponse.json(
-      { error: 'ユーザー情報の取得に失敗しました' },
+      { error: 'ユーザー情報の取得中にエラーが発生しました' },
       { status: 500 }
     );
   }

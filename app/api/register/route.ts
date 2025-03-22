@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { insertUserSchema } from '@/shared/schema';
-import { createUser, getUserByEmail, getUserByUsername } from '@/lib/db';
-import { hashPassword } from '@/utils/auth';
+import { insertUserSchema } from '../../shared/schema';
+import { createUser, getUserByEmail, getUserByUsername } from '../../lib/db';
+import { hashPassword } from '../../utils/auth';
 
 export async function POST(request: NextRequest) {
   try {
