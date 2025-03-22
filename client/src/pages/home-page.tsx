@@ -110,14 +110,14 @@ const HomePage = () => {
             {/* メインコンテンツエリア (2/3幅) */}
             <div className="lg:col-span-2 space-y-6">
               {/* ユーザーウェルカム */}
-              <Card className="overflow-hidden">
+              <Card className="overflow-hidden" id="welcome-banner">
                 <div className="bg-gradient-to-r from-primary to-blue-600 p-6 text-white">
                   <h1 className="text-2xl font-bold">ようこそ、{user?.username || 'ゲスト'}さん</h1>
                   <p className="mt-2 text-primary-foreground/90">{today}</p>
                 </div>
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
+                    <div id="task-progress">
                       <h2 className="text-lg font-medium mb-2">ビザ申請進捗状況</h2>
                       <div className="flex items-center gap-4">
                         <Progress value={progressPercentage} className="w-60 h-2.5" />

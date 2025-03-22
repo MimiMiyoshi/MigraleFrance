@@ -1,3 +1,4 @@
+import React from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -11,6 +12,9 @@ import TasksPage from "@/pages/tasks-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
 import { NotificationProvider } from "./hooks/use-notifications";
+import { OnboardingProvider } from "./hooks/use-onboarding";
+import OnboardingTour from "./components/onboarding/tour";
+import "./components/onboarding/tour-styles.css";
 
 function Router() {
   return (
@@ -30,8 +34,11 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <NotificationProvider>
-          <Router />
-          <Toaster />
+          <OnboardingProvider>
+            <Router />
+            <OnboardingTour />
+            <Toaster />
+          </OnboardingProvider>
         </NotificationProvider>
       </AuthProvider>
     </QueryClientProvider>
