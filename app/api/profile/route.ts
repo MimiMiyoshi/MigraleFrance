@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route';
-import { getUser, updateUser } from '../../lib/db';
+import { getUser, updateUser } from '@/lib/db';
 import { z } from 'zod';
 
 /**
@@ -11,15 +11,14 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session) {
+    if (!session?.user) {
       return NextResponse.json(
         { error: '認証されていません' },
         { status: 401 }
       );
     }
     
-    const userId = session.user.id;
-    const user = await getUser(userId);
+    const user = await getUser(session.user.id);
     
     if (!user) {
       return NextResponse.json(
@@ -29,13 +28,13 @@ export async function GET(request: NextRequest) {
     }
     
     // パスワードは返さない
-    const { password, ...userWithoutPassword } = user;
+    const { password, ...userProfile } = user;
     
-    return NextResponse.json(userWithoutPassword);
+    return NextResponse.json(userProfile);
   } catch (error) {
     console.error('プロフィール取得エラー:', error);
     return NextResponse.json(
-      { error: 'プロフィールの取得中にエラーが発生しました' },
+      { error: 'プロフィールの取得に失敗しました' },
       { status: 500 }
     );
   }
@@ -48,49 +47,49 @@ export async function PATCH(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session) {
+    if (!session?.user) {
       return NextResponse.json(
         { error: '認証されていません' },
         { status: 401 }
       );
     }
     
-    const userId = session.user.id;
     const body = await request.json();
     
-    // 更新可能なフィールドを制限
+    // 更新可能なフィールドをバリデーション
     const updateSchema = z.object({
-      email: z.string().email().optional(),
+      email: z.string().email({ message: '有効なメールアドレスを入力してください' }).optional(),
       // 他の更新可能なフィールドがあればここに追加
     });
     
-    // バリデーション
     const validationResult = updateSchema.safeParse(body);
     if (!validationResult.success) {
       return NextResponse.json(
-        { error: '無効な入力データです', details: validationResult.error.errors },
+        { error: '入力データが不正です', details: validationResult.error.format() },
         { status: 400 }
       );
     }
     
-    // ユーザー情報を更新
-    const updatedUser = await updateUser(userId, validationResult.data);
+    const updates = validationResult.data;
+    
+    // ユーザープロフィールを更新
+    const updatedUser = await updateUser(session.user.id, updates);
     
     if (!updatedUser) {
       return NextResponse.json(
-        { error: 'ユーザー情報の更新に失敗しました' },
+        { error: 'プロフィールの更新に失敗しました' },
         { status: 500 }
       );
     }
     
     // パスワードは返さない
-    const { password, ...userWithoutPassword } = updatedUser;
+    const { password, ...updatedProfile } = updatedUser;
     
-    return NextResponse.json(userWithoutPassword);
+    return NextResponse.json(updatedProfile);
   } catch (error) {
     console.error('プロフィール更新エラー:', error);
     return NextResponse.json(
-      { error: 'プロフィールの更新中にエラーが発生しました' },
+      { error: 'プロフィールの更新に失敗しました' },
       { status: 500 }
     );
   }
