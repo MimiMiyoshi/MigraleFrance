@@ -14,6 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { VisaTask } from "@shared/schema";
+import { useOnboarding } from "@/hooks/use-onboarding";
 
 // AIエージェントからのメッセージリスト
 const aiMessages = [
@@ -68,6 +69,7 @@ const HomePage = () => {
   const [, navigate] = useLocation();
   const [tasks, setTasks] = useState<VisaTask[]>(mockTasks);
   const [aiMessage, setAiMessage] = useState<string>("");
+  const { setShowTour } = useOnboarding();
 
   // AIエージェントからのランダムメッセージを取得
   useEffect(() => {
@@ -235,6 +237,10 @@ const HomePage = () => {
                     <Button variant="outline" className="justify-start" onClick={() => navigate("/tasks")}>
                       <List className="mr-2 h-4 w-4" />
                       タスク管理
+                    </Button>
+                    <Button variant="outline" className="justify-start" onClick={() => setShowTour(true)}>
+                      <Home className="mr-2 h-4 w-4" />
+                      ツアーを開始
                     </Button>
                     <Button variant="outline" className="justify-start" disabled>
                       <Settings className="mr-2 h-4 w-4" />
