@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { insertUserSchema } from '../../shared/schema';
+import { z } from 'zod';
+import { getUserByUsername, getUserByEmail, createUser } from '../../lib/db';
 import { hashPassword } from '../../utils/auth';
-import { createUser, getUserByEmail, getUserByUsername } from '../../lib/db';
+
+// ユーザー登録スキーマ
+const registerSchema = z.object({
+  username: z.string().min(3, { message: 'ユーザー名は3文字以上である必要があります' }),
+  email: z.string().email({ message: '有効なメールアドレスを入力してください' }),
+  password: z.string().min(8, { message: 'パスワードは8文字以上である必要があります' }),
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,15 +16,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // バリデーション
-    const result = insertUserSchema.safeParse(body);
+    const result = registerSchema.safeParse(body);
     if (!result.success) {
       return NextResponse.json(
-        { message: '無効なユーザーデータです', errors: result.error.errors },
+        { message: '入力内容に問題があります', errors: result.error.errors },
         { status: 400 }
       );
     }
 
-    // ユーザー名とメールの重複チェック
+    // 既存ユーザーのチェック（ユーザー名）
     const existingUsername = await getUserByUsername(body.username);
     if (existingUsername) {
       return NextResponse.json(
@@ -26,6 +33,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 既存ユーザーのチェック（メールアドレス）
     const existingEmail = await getUserByEmail(body.email);
     if (existingEmail) {
       return NextResponse.json(
@@ -34,7 +42,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // パスワードのハッシュ化
+    // パスワードをハッシュ化
     const hashedPassword = await hashPassword(body.password);
 
     // ユーザーの作成
@@ -45,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     // パスワードを除外して返す
     const { password, ...userWithoutPassword } = user;
-
+    
     return NextResponse.json(userWithoutPassword, { status: 201 });
   } catch (error) {
     console.error('ユーザー登録エラー:', error);

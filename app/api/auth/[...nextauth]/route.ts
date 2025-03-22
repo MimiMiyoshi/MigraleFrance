@@ -1,16 +1,15 @@
-import { NextAuthOptions } from 'next-auth';
-import NextAuth from 'next-auth/next';
+import NextAuth, { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { comparePasswords } from '../../../utils/auth';
 import { getUserByUsername } from '../../../lib/db';
+import { comparePasswords } from '../../../utils/auth';
 
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      name: 'Credentials',
+      name: 'ユーザー名/パスワード',
       credentials: {
         username: { label: 'ユーザー名', type: 'text' },
-        password: { label: 'パスワード', type: 'password' }
+        password: { label: 'パスワード', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) {
@@ -22,21 +21,19 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const isValid = await comparePasswords(credentials.password, user.password);
-        if (!isValid) {
+        const isValidPassword = await comparePasswords(credentials.password, user.password);
+        if (!isValidPassword) {
           return null;
         }
 
         // パスワードを除外して返す
         const { password, ...userWithoutPassword } = user;
         return {
-          id: String(user.id),
-          username: user.username,
-          email: user.email,
-          ...userWithoutPassword
+          ...userWithoutPassword,
+          id: String(user.id), // NextAuthはidを文字列として扱う
         };
-      }
-    })
+      },
+    }),
   ],
   callbacks: {
     async jwt({ token, user }) {
@@ -52,18 +49,18 @@ export const authOptions: NextAuthOptions = {
         session.user.username = token.username as string;
       }
       return session;
-    }
-  },
-  pages: {
-    signIn: '/auth',
-    signOut: '/auth',
-    error: '/auth',
+    },
   },
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30日
+    maxAge: 60 * 60 * 24 * 30, // 30日
   },
-  secret: process.env.NEXTAUTH_SECRET || 'your-secret-key',
+  pages: {
+    signIn: '/auth',
+    newUser: '/auth?mode=register',
+    error: '/auth?error=true',
+  },
+  debug: process.env.NODE_ENV === 'development',
 };
 
 const handler = NextAuth(authOptions);

@@ -1,32 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route';
-import * as db from '@/app/lib/db';
+import { getUser, updateUser, getUserByEmail } from '../../lib/db';
 import { z } from 'zod';
 
-// プロファイル更新スキーマ
+// プロフィール更新用のスキーマ
 const updateProfileSchema = z.object({
   email: z.string().email({ message: '有効なメールアドレスを入力してください' }).optional(),
+  username: z.string().min(3, { message: 'ユーザー名は3文字以上である必要があります' }).optional(),
 });
 
+/**
+ * ユーザープロフィール情報を取得するAPI
+ */
 export async function GET(request: NextRequest) {
   try {
+    // セッションの取得
     const session = await getServerSession(authOptions);
-    
-    if (!session || !session.user) {
-      return NextResponse.json(null, { status: 401 });
+
+    // 未認証の場合は401エラー
+    if (!session) {
+      return NextResponse.json({ message: '認証が必要です' }, { status: 401 });
     }
+
+    // データベースからユーザー情報を取得
+    const user = await getUser(Number(session.user.id));
     
-    const user = await db.getUser(session.user.id);
-    
+    // ユーザーが見つからない場合は404エラー
     if (!user) {
-      return NextResponse.json(
-        { message: 'プロフィールが見つかりません' },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: 'ユーザーが見つかりません' }, { status: 404 });
     }
-    
-    // パスワードを除外してレスポンスを返す
+
+    // パスワードを除外して返す
     const { password, ...userWithoutPassword } = user;
     
     return NextResponse.json(userWithoutPassword);
@@ -39,47 +44,51 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/**
+ * ユーザープロフィールを更新するAPI
+ */
 export async function PATCH(request: NextRequest) {
   try {
+    // セッションの取得
     const session = await getServerSession(authOptions);
-    
-    if (!session || !session.user) {
-      return NextResponse.json(null, { status: 401 });
+
+    // 未認証の場合は401エラー
+    if (!session) {
+      return NextResponse.json({ message: '認証が必要です' }, { status: 401 });
     }
-    
+
+    // リクエストボディの取得
     const body = await request.json();
-    
-    // 入力データを検証
+
+    // バリデーション
     const result = updateProfileSchema.safeParse(body);
     if (!result.success) {
       return NextResponse.json(
-        { message: '入力データが不正です', errors: result.error.format() },
+        { message: '無効なプロフィールデータです', errors: result.error.errors },
         { status: 400 }
       );
     }
-    
-    // メールアドレスが変更される場合、重複チェック
+
+    // メールアドレスの更新時に重複チェック
     if (body.email) {
-      const existingEmail = await db.getUserByEmail(body.email);
-      if (existingEmail && existingEmail.id !== session.user.id) {
+      const existingUser = await getUserByEmail(body.email);
+      if (existingUser && existingUser.id !== Number(session.user.id)) {
         return NextResponse.json(
-          { message: 'このメールアドレスはすでに登録されています' },
+          { message: 'このメールアドレスは既に使用されています' },
           { status: 400 }
         );
       }
     }
+
+    // ユーザーの取得と更新
+    const updatedUser = await updateUser(Number(session.user.id), body);
     
-    // プロフィールを更新
-    const updatedUser = await db.updateTask(session.user.id, body);
-    
+    // ユーザーが見つからない場合
     if (!updatedUser) {
-      return NextResponse.json(
-        { message: 'プロフィールの更新に失敗しました' },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: 'ユーザーが見つかりません' }, { status: 404 });
     }
-    
-    // パスワードを除外してレスポンスを返す
+
+    // パスワードを除外して返す
     const { password, ...userWithoutPassword } = updatedUser;
     
     return NextResponse.json(userWithoutPassword);
