@@ -1,57 +1,59 @@
-import { NextResponse } from "next/server";
-import { insertUserSchema } from "@shared/schema";
-import { hashPassword } from "@/app/utils/auth";
-import * as db from "@/app/lib/db";
-import { ZodError } from "zod";
-import { fromZodError } from "zod-validation-error";
+import { NextRequest, NextResponse } from 'next/server';
+import { InsertUser } from '../../../shared/schema';
+import { hashPassword } from '@/app/utils/auth';
+import * as db from '@/app/lib/db';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // リクエストのボディを取得
   try {
     const body = await request.json();
     
-    // リクエストデータをバリデーション
-    const userData = insertUserSchema.parse(body);
-    
-    // ユーザー名の重複チェック
-    const usernameExists = await db.getUserByUsername(userData.username);
-    if (usernameExists) {
+    // 必須フィールドの確認
+    if (!body.username || !body.email || !body.password) {
       return NextResponse.json(
-        { message: "このユーザー名は既に使用されています" },
+        { message: '必須フィールドがありません' },
         { status: 400 }
       );
     }
     
-    // メールアドレスの重複チェック
-    const emailExists = await db.getUserByEmail(userData.email);
-    if (emailExists) {
+    // 既存ユーザーの確認
+    const existingByUsername = await db.getUserByUsername(body.username);
+    if (existingByUsername) {
       return NextResponse.json(
-        { message: "このメールアドレスは既に使用されています" },
+        { message: 'このユーザー名は既に使用されています' },
         { status: 400 }
       );
     }
     
-    // ユーザー作成
-    const user = await db.createUser({
-      ...userData,
-      password: await hashPassword(userData.password)
-    });
+    const existingByEmail = await db.getUserByEmail(body.email);
+    if (existingByEmail) {
+      return NextResponse.json(
+        { message: 'このメールアドレスは既に使用されています' },
+        { status: 400 }
+      );
+    }
     
-    // パスワードを除外してレスポンスを返す
-    const { password, ...userWithoutPassword } = user;
+    // パスワードのハッシュ化
+    const hashedPassword = await hashPassword(body.password);
+    
+    // ユーザーの作成
+    const userData: InsertUser = {
+      username: body.username,
+      email: body.email,
+      password: hashedPassword,
+      createdAt: new Date().toISOString(),
+    };
+    
+    const newUser = await db.createUser(userData);
+    
+    // パスワードを除いてレスポンスを返す
+    const { password, ...userWithoutPassword } = newUser;
     
     return NextResponse.json(userWithoutPassword, { status: 201 });
-  } catch (error) {
-    if (error instanceof ZodError) {
-      const validationError = fromZodError(error);
-      return NextResponse.json(
-        { message: validationError.message },
-        { status: 400 }
-      );
-    }
-    
-    console.error("Registration error:", error);
+  } catch (error: any) {
+    console.error('ユーザー登録エラー:', error);
     return NextResponse.json(
-      { message: "ユーザー登録中にエラーが発生しました" },
+      { message: error.message || 'ユーザー登録中にエラーが発生しました' },
       { status: 500 }
     );
   }

@@ -6,23 +6,36 @@
  * APIリクエストを送信する基本関数
  */
 async function fetchAPI<T>(
-  url: string, 
+  endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const response = await fetch(url, {
+  // デフォルトヘッダーの設定
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+
+  // リクエストを送信
+  const response = await fetch(endpoint, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
+    credentials: 'include', // クッキーを含める
   });
 
+  // レスポンスが2xx以外の場合はエラーをスロー
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || 'APIリクエスト中にエラーが発生しました');
+    const errorData = await response.json().catch(() => ({}));
+    const errorMessage = errorData.message || `API エラー: ${response.status}`;
+    throw new Error(errorMessage);
   }
 
-  return response.json();
+  // 204 No Content の場合は空オブジェクトを返す
+  if (response.status === 204) {
+    return {} as T;
+  }
+
+  // レスポンスをJSONとしてパース
+  return await response.json() as T;
 }
 
 /**
@@ -32,21 +45,26 @@ export const userAPI = {
   /**
    * 現在のユーザー情報を取得
    */
-  getCurrentUser: () => fetchAPI('/api/user'),
-  
+  getCurrentUser: async () => {
+    return fetchAPI<any>('/api/user');
+  },
+
   /**
    * ユーザープロファイルを取得
    */
-  getProfile: () => fetchAPI('/api/profile'),
-  
+  getProfile: async () => {
+    return fetchAPI<any>('/api/profile');
+  },
+
   /**
-   * パスワードを変更（未実装）
+   * メールアドレスを更新
    */
-  changePassword: (currentPassword: string, newPassword: string) => 
-    fetchAPI('/api/profile', {
+  updateEmail: async (email: string) => {
+    return fetchAPI<any>('/api/profile', {
       method: 'PATCH',
-      body: JSON.stringify({ currentPassword, newPassword }),
-    }),
+      body: JSON.stringify({ email }),
+    });
+  },
 };
 
 /**
@@ -56,38 +74,45 @@ export const taskAPI = {
   /**
    * ユーザーのタスク一覧を取得
    */
-  getAllTasks: () => fetchAPI('/api/tasks'),
-  
+  getAllTasks: async () => {
+    return fetchAPI<any[]>('/api/tasks');
+  },
+
   /**
    * 特定のタスクを取得
    */
-  getTaskById: (taskId: number) => fetchAPI(`/api/tasks/${taskId}`),
-  
+  getTask: async (id: number) => {
+    return fetchAPI<any>(`/api/tasks/${id}`);
+  },
+
   /**
    * 新しいタスクを作成
    */
-  createTask: (taskData: any) => 
-    fetchAPI('/api/tasks', {
+  createTask: async (taskData: { title: string; description?: string; dueDate?: string }) => {
+    return fetchAPI<any>('/api/tasks', {
       method: 'POST',
       body: JSON.stringify(taskData),
-    }),
-  
+    });
+  },
+
   /**
    * タスクを更新
    */
-  updateTask: (taskId: number, taskData: any) => 
-    fetchAPI(`/api/tasks/${taskId}`, {
+  updateTask: async (id: number, taskData: { title?: string; description?: string; dueDate?: string; completed?: boolean }) => {
+    return fetchAPI<any>(`/api/tasks/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(taskData),
-    }),
-  
+    });
+  },
+
   /**
    * タスクを削除
    */
-  deleteTask: (taskId: number) => 
-    fetchAPI(`/api/tasks/${taskId}`, {
+  deleteTask: async (id: number) => {
+    return fetchAPI<void>(`/api/tasks/${id}`, {
       method: 'DELETE',
-    }),
+    });
+  },
 };
 
 /**
@@ -97,21 +122,26 @@ export const visaAPI = {
   /**
    * ユーザーのビザ回答一覧を取得
    */
-  getAllResponses: () => fetchAPI('/api/visa/responses'),
-  
+  getAllResponses: async () => {
+    return fetchAPI<any[]>('/api/visa/responses');
+  },
+
   /**
    * 特定のビザ回答を取得
    */
-  getResponseById: (responseId: number) => fetchAPI(`/api/visa/responses/${responseId}`),
-  
+  getResponse: async (id: number) => {
+    return fetchAPI<any>(`/api/visa/responses/${id}`);
+  },
+
   /**
    * 新しいビザ回答を保存
    */
-  createResponse: (responseData: any) => 
-    fetchAPI('/api/visa/responses', {
+  createResponse: async (responseData: { responses: Record<string, string>; result: string }) => {
+    return fetchAPI<any>('/api/visa/responses', {
       method: 'POST',
       body: JSON.stringify(responseData),
-    }),
+    });
+  },
 };
 
 /**
@@ -121,5 +151,7 @@ export const statsAPI = {
   /**
    * ユーザーの統計情報を取得
    */
-  getUserStats: () => fetchAPI('/api/stats'),
+  getUserStats: async () => {
+    return fetchAPI<any>('/api/stats');
+  },
 };
