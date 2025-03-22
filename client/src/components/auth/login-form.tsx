@@ -10,8 +10,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 
 const loginSchema = z.object({
-  username: z.string().min(3, { message: "Username must be at least 3 characters" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  username: z.string().min(3, { message: "ユーザー名は3文字以上で入力してください" }),
+  password: z.string().min(6, { message: "パスワードは6文字以上で入力してください" }),
   rememberMe: z.boolean().optional(),
 });
 

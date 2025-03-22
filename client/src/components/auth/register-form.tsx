@@ -11,14 +11,14 @@ import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 
 const registerSchema = z.object({
-  fullName: z.string().min(2, { message: "Full name must be at least 2 characters" }),
-  username: z.string().min(3, { message: "Username must be at least 3 characters" }),
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  fullName: z.string().min(2, { message: "氏名は2文字以上で入力してください" }),
+  username: z.string().min(3, { message: "ユーザー名は3文字以上で入力してください" }),
+  email: z.string().email({ message: "有効なメールアドレスを入力してください" }),
+  password: z.string().min(6, { message: "パスワードは6文字以上で入力してください" }),
   confirmPassword: z.string(),
-  terms: z.boolean().refine(val => val === true, { message: "You must agree to the terms and conditions" }),
+  terms: z.boolean().refine(val => val === true, { message: "利用規約に同意する必要があります" }),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
+  message: "パスワードが一致しません",
   path: ["confirmPassword"],
 });
 
@@ -104,12 +104,12 @@ const RegisterForm = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>パスワード</FormLabel>
                   <FormControl>
                     <Input type="password" placeholder="••••••••" {...field} autoComplete="new-password" />
                   </FormControl>
                   <FormDescription>
-                    Password must be at least 6 characters
+                    パスワードは6文字以上である必要があります
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -121,7 +121,7 @@ const RegisterForm = () => {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm password</FormLabel>
+                  <FormLabel>パスワード確認</FormLabel>
                   <FormControl>
                     <Input type="password" placeholder="••••••••" {...field} autoComplete="new-password" />
                   </FormControl>
@@ -143,7 +143,7 @@ const RegisterForm = () => {
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>
-                      I agree to the <a href="#" className="text-primary hover:text-primary-dark">Terms of Service</a> and <a href="#" className="text-primary hover:text-primary-dark">Privacy Policy</a>
+                      <a href="#" className="text-primary hover:text-primary-dark">利用規約</a>と<a href="#" className="text-primary hover:text-primary-dark">プライバシーポリシー</a>に同意します
                     </FormLabel>
                     <FormMessage />
                   </div>
@@ -155,10 +155,10 @@ const RegisterForm = () => {
               {registerMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating account...
+                  アカウント作成中...
                 </>
               ) : (
-                'Create account'
+                'アカウント作成'
               )}
             </Button>
           </form>
@@ -170,7 +170,7 @@ const RegisterForm = () => {
               <Separator />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              <span className="px-2 bg-white text-gray-500">または、次の方法で続ける</span>
             </div>
           </div>
           
