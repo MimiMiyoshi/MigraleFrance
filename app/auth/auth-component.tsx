@@ -1,63 +1,45 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { z } from 'zod';
+import Image from 'next/image';
 
-// ログインフォームのバリデーションスキーマ
+// Next.jsプロジェクトでは通常、@/componentsのようなエイリアスが設定されていますが、
+// まだshadcnコンポーネントが移植されていないため、シンプルなHTML要素を使用します
+// 将来的にはshadcnのコンポーネントに置き換えます
+
 const loginSchema = z.object({
-  username: z.string().min(1, {
-    message: 'ユーザー名を入力してください',
-  }),
-  password: z.string().min(1, {
-    message: 'パスワードを入力してください',
-  }),
+  username: z.string().min(1, { message: 'ユーザー名は必須です' }),
+  password: z.string().min(1, { message: 'パスワードは必須です' }),
 });
 
-// 登録フォームのバリデーションスキーマ
 const registerSchema = z.object({
-  username: z.string().min(3, {
-    message: 'ユーザー名は3文字以上で入力してください',
-  }),
-  email: z.string().email({
-    message: '有効なメールアドレスを入力してください',
-  }),
-  password: z.string().min(6, {
-    message: 'パスワードは6文字以上で入力してください',
-  }),
-  confirmPassword: z.string().min(1, {
-    message: 'パスワード（確認）を入力してください',
-  }),
+  username: z.string().min(3, { message: 'ユーザー名は3文字以上である必要があります' }),
+  email: z.string().email({ message: '有効なメールアドレスを入力してください' }),
+  password: z
+    .string()
+    .min(8, { message: 'パスワードは8文字以上である必要があります' })
+    .regex(/[A-Z]/, { message: 'パスワードは少なくとも1つの大文字を含む必要があります' })
+    .regex(/[0-9]/, { message: 'パスワードは少なくとも1つの数字を含む必要があります' }),
+  confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "パスワードが一致しません",
-  path: ["confirmPassword"],
+  message: 'パスワードが一致しません',
+  path: ['confirmPassword'],
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
-  const [activeTab, setActiveTab] = useState<string>('login');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { toast } = useToast();
 
-  // ログインフォームの設定
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -66,7 +48,6 @@ export default function AuthPage() {
     },
   });
 
-  // 登録フォームの設定
   const registerForm = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -77,10 +58,10 @@ export default function AuthPage() {
     },
   });
 
-  // ログイン処理
   const onLogin = async (data: LoginFormValues) => {
     try {
-      setIsSubmitting(true);
+      setLoading(true);
+      setError(null);
       
       const result = await signIn('credentials', {
         username: data.username,
@@ -89,39 +70,25 @@ export default function AuthPage() {
       });
       
       if (result?.error) {
-        toast({
-          title: 'ログインエラー',
-          description: 'ユーザー名またはパスワードが正しくありません',
-          variant: 'destructive',
-        });
+        setError('ログインに失敗しました。ユーザー名またはパスワードが正しくありません。');
         return;
       }
       
-      toast({
-        title: 'ログイン成功',
-        description: 'ダッシュボードにリダイレクトします',
-      });
-      
-      // ダッシュボードにリダイレクト
       router.push('/dashboard');
-    } catch (error) {
-      console.error('ログインエラー:', error);
-      toast({
-        title: 'エラー',
-        description: 'ログイン処理中にエラーが発生しました',
-        variant: 'destructive',
-      });
+    } catch (err) {
+      console.error('ログインエラー:', err);
+      setError('ログイン処理中にエラーが発生しました。');
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
-  // 登録処理
   const onRegister = async (data: RegisterFormValues) => {
     try {
-      setIsSubmitting(true);
+      setLoading(true);
+      setError(null);
       
-      // 登録APIを呼び出し
+      // APIを呼び出してユーザーを登録
       const response = await fetch('/api/register', {
         method: 'POST',
         headers: {
@@ -134,245 +101,265 @@ export default function AuthPage() {
         }),
       });
       
-      const result = await response.json();
-      
+      // レスポンスをチェック
       if (!response.ok) {
-        throw new Error(result.message || '登録に失敗しました');
+        const errorData = await response.json();
+        setError(errorData.message || '登録に失敗しました。');
+        return;
       }
       
-      toast({
-        title: '登録成功',
-        description: 'アカウントが正常に作成されました。ログインしてください。',
+      // 登録後自動的にログイン
+      const result = await signIn('credentials', {
+        username: data.username,
+        password: data.password,
+        redirect: false,
       });
       
-      // ログインタブに切り替え
-      setActiveTab('login');
-      loginForm.setValue('username', data.username);
+      if (result?.error) {
+        setError('登録は成功しましたが、自動ログインに失敗しました。ログインページから再度ログインしてください。');
+        setActiveTab('login');
+        return;
+      }
       
-    } catch (error: any) {
-      console.error('登録エラー:', error);
-      toast({
-        title: '登録エラー',
-        description: error.message || '登録処理中にエラーが発生しました',
-        variant: 'destructive',
-      });
+      router.push('/dashboard');
+    } catch (err) {
+      console.error('登録エラー:', err);
+      setError('登録処理中にエラーが発生しました。');
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <>
-      {/* 左側: フォーム */}
-      <div className="flex items-center justify-center p-8">
-        <div className="w-full max-w-md">
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold mb-2">Migrale</h1>
-            <p className="text-muted-foreground">
-              あなたのフランス移住をサポートするアプリケーション
-            </p>
-          </div>
-          
-          <Tabs
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full"
-          >
-            <TabsList className="grid w-full grid-cols-2 mb-8">
-              <TabsTrigger value="login">ログイン</TabsTrigger>
-              <TabsTrigger value="register">新規登録</TabsTrigger>
-            </TabsList>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl w-full bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="flex flex-col md:flex-row">
+          {/* 左側: フォーム */}
+          <div className="w-full md:w-1/2 p-8">
+            <div className="mb-6 text-center">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Migrale</h1>
+              <p className="text-sm text-gray-600">フランス移住をサポートするプラットフォーム</p>
+            </div>
+            
+            {/* タブ */}
+            <div className="flex mb-6 border-b">
+              <button
+                className={`flex-1 py-2 font-medium text-sm ${
+                  activeTab === 'login'
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+                onClick={() => setActiveTab('login')}
+              >
+                ログイン
+              </button>
+              <button
+                className={`flex-1 py-2 font-medium text-sm ${
+                  activeTab === 'register'
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+                onClick={() => setActiveTab('register')}
+              >
+                新規登録
+              </button>
+            </div>
+            
+            {/* エラーメッセージ */}
+            {error && (
+              <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
+                {error}
+              </div>
+            )}
             
             {/* ログインフォーム */}
-            <TabsContent value="login">
-              <Form {...loginForm}>
-                <form
-                  onSubmit={loginForm.handleSubmit(onLogin)}
-                  className="space-y-4"
-                >
-                  <FormField
-                    control={loginForm.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>ユーザー名</FormLabel>
-                        <FormControl>
-                          <Input placeholder="ユーザー名を入力" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+            {activeTab === 'login' && (
+              <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
+                <div>
+                  <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                    ユーザー名
+                  </label>
+                  <input
+                    id="username"
+                    type="text"
+                    {...loginForm.register('username')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
-                  
-                  <FormField
-                    control={loginForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>パスワード</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="パスワードを入力"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                  {loginForm.formState.errors.username && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {loginForm.formState.errors.username.message}
+                    </p>
+                  )}
+                </div>
+                
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                    パスワード
+                  </label>
+                  <input
+                    id="password"
+                    type="password"
+                    {...loginForm.register('password')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
-                  
-                  <Button
+                  {loginForm.formState.errors.password && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {loginForm.formState.errors.password.message}
+                    </p>
+                  )}
+                </div>
+                
+                <div>
+                  <button
                     type="submit"
-                    className="w-full"
-                    disabled={isSubmitting}
+                    disabled={loading}
+                    className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
                   >
-                    {isSubmitting ? 'ログイン中...' : 'ログイン'}
-                  </Button>
-                </form>
-              </Form>
-            </TabsContent>
+                    {loading ? 'ログイン中...' : 'ログイン'}
+                  </button>
+                </div>
+              </form>
+            )}
             
             {/* 登録フォーム */}
-            <TabsContent value="register">
-              <Form {...registerForm}>
-                <form
-                  onSubmit={registerForm.handleSubmit(onRegister)}
-                  className="space-y-4"
-                >
-                  <FormField
-                    control={registerForm.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>ユーザー名</FormLabel>
-                        <FormControl>
-                          <Input placeholder="ユーザー名を入力" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+            {activeTab === 'register' && (
+              <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
+                <div>
+                  <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                    ユーザー名
+                  </label>
+                  <input
+                    id="username"
+                    type="text"
+                    {...registerForm.register('username')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
-                  
-                  <FormField
-                    control={registerForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>メールアドレス</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="メールアドレスを入力"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                  {registerForm.formState.errors.username && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {registerForm.formState.errors.username.message}
+                    </p>
+                  )}
+                </div>
+                
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                    メールアドレス
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    {...registerForm.register('email')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
-                  
-                  <FormField
-                    control={registerForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>パスワード</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="パスワードを入力"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                  {registerForm.formState.errors.email && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {registerForm.formState.errors.email.message}
+                    </p>
+                  )}
+                </div>
+                
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                    パスワード
+                  </label>
+                  <input
+                    id="password"
+                    type="password"
+                    {...registerForm.register('password')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
-                  
-                  <FormField
-                    control={registerForm.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>パスワード（確認）</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="パスワードを再入力"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                  {registerForm.formState.errors.password && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {registerForm.formState.errors.password.message}
+                    </p>
+                  )}
+                </div>
+                
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                    パスワード (確認)
+                  </label>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    {...registerForm.register('confirmPassword')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
-                  
-                  <Button
+                  {registerForm.formState.errors.confirmPassword && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {registerForm.formState.errors.confirmPassword.message}
+                    </p>
+                  )}
+                </div>
+                
+                <div>
+                  <button
                     type="submit"
-                    className="w-full"
-                    disabled={isSubmitting}
+                    disabled={loading}
+                    className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
                   >
-                    {isSubmitting ? '登録中...' : '登録する'}
-                  </Button>
-                </form>
-              </Form>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
-      
-      {/* 右側: ヒーローセクション */}
-      <div className="hidden md:flex bg-accent/20 items-center justify-center p-8">
-        <div className="max-w-lg">
-          <h2 className="text-3xl font-bold mb-4">
-            あなたのフランス移住を<br />
-            簡単に、そしてスマートに
-          </h2>
-          <p className="text-lg mb-6">
-            Migraleは、フランス移住のための複雑なプロセスをシンプルにし、
-            ビザの選択から必要な手続きまでをガイドします。
-          </p>
+                    {loading ? '登録中...' : '登録'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
           
-          <div className="grid grid-cols-1 gap-4">
-            <div className="flex items-start gap-4">
-              <div className="rounded-full bg-primary/20 p-2 text-primary mt-1">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-              </div>
-              <div>
-                <h3 className="font-medium mb-1">ビザ診断機能</h3>
-                <p className="text-muted-foreground">
-                  簡単な質問に答えるだけで、あなたに最適なビザの種類を提案します。
-                </p>
+          {/* 右側: イメージとテキスト */}
+          <div className="hidden md:block w-1/2 bg-gradient-to-r from-blue-500 to-blue-600 p-8 text-white flex flex-col justify-between">
+            <div>
+              <h2 className="text-2xl font-bold mb-4">フランス移住をもっと簡単に</h2>
+              <p className="mb-6">
+                Migraleはフランス移住を検討している日本人のための総合サポートプラットフォームです。ビザの選択から必要な手続きまで、あなたの移住をスムーズにサポートします。
+              </p>
+              
+              <div className="space-y-4">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-400 flex items-center justify-center">
+                    <span className="text-sm font-bold">1</span>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-lg font-medium">ビザ診断</h3>
+                    <p className="text-sm opacity-80">
+                      質問に答えるだけで、あなたに最適なビザタイプを診断します。
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-400 flex items-center justify-center">
+                    <span className="text-sm font-bold">2</span>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-lg font-medium">タスク管理</h3>
+                    <p className="text-sm opacity-80">
+                      必要な手続きをタスクとして管理し、スムーズな移住準備をサポートします。
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-400 flex items-center justify-center">
+                    <span className="text-sm font-bold">3</span>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-lg font-medium">文化情報</h3>
+                    <p className="text-sm opacity-80">
+                      フランスの文化や習慣に関する情報を提供し、新生活への適応を助けます。
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
             
-            <div className="flex items-start gap-4">
-              <div className="rounded-full bg-primary/20 p-2 text-primary mt-1">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 14l2 2 4-4"/></svg>
-              </div>
-              <div>
-                <h3 className="font-medium mb-1">タスク管理</h3>
-                <p className="text-muted-foreground">
-                  ビザ申請に必要な書類や手続きを整理し、進捗を簡単に管理できます。
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-4">
-              <div className="rounded-full bg-primary/20 p-2 text-primary mt-1">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
-              </div>
-              <div>
-                <h3 className="font-medium mb-1">AIアシスタント</h3>
-                <p className="text-muted-foreground">
-                  フランスの文化や生活に関する情報提供と、ビザ申請のアドバイスを提供します。
-                </p>
-              </div>
+            <div className="mt-8 text-sm opacity-80">
+              <p>
+                ※このアプリケーションは情報提供を目的としており、法的なアドバイスを提供するものではありません。
+              </p>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

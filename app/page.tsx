@@ -1,15 +1,15 @@
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from './api/auth/[...nextauth]/route';
+import { redirect } from 'next/navigation'
+import { getServerSession } from 'next-auth'
+import { authOptions } from './api/auth/[...nextauth]/route'
 
-// ルートページ - 認証状態に応じてリダイレクト
 export default async function Home() {
-  const session = await getServerSession(authOptions);
-  
-  // 認証済みならダッシュボードへ、未認証なら認証ページへリダイレクト
+  const session = await getServerSession(authOptions)
+
+  // ログイン済みの場合はダッシュボードへリダイレクト
   if (session) {
-    redirect('/dashboard');
-  } else {
-    redirect('/auth');
+    redirect('/dashboard')
   }
+  
+  // 未ログインの場合は認証ページへリダイレクト
+  redirect('/auth')
 }

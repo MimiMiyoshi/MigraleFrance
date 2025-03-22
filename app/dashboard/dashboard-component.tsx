@@ -1,253 +1,147 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
-import { statsAPI, taskAPI } from '../services/api';
-import { CalendarIcon, CheckCircleIcon, ListTodoIcon, FileTextIcon } from 'lucide-react';
 
-// ダッシュボード用のクライアントコンポーネント
-export default function Dashboard() {
-  const { data: session } = useSession();
-  const [stats, setStats] = useState<any>(null);
-  const [recentTasks, setRecentTasks] = useState<any[]>([]);
+interface DashboardProps {
+  user: any; // 本来はセッションのユーザー型を定義する
+}
+
+export default function Dashboard({ user }: DashboardProps) {
+  const router = useRouter();
+  const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [motivationalMessage, setMotivationalMessage] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // 統計情報とタスク情報を取得
-    const fetchData = async () => {
+    // タスク一覧を取得
+    const fetchTasks = async () => {
       try {
-        setLoading(true);
-        
-        // 統計情報を取得
-        const statsData = await statsAPI.getUserStats();
-        setStats(statsData);
-        
-        // タスク一覧を取得し、最新の3件を抽出
-        const tasksData = await taskAPI.getAllTasks();
-        setRecentTasks(tasksData.slice(0, 3));
-        
-        // AIエージェントの励ましメッセージ（後で実装）
-        generateMotivationalMessage(statsData);
-        
-        setLoading(false);
-      } catch (error) {
-        console.error('データ取得エラー:', error);
+        const response = await fetch('/api/tasks');
+        if (!response.ok) {
+          throw new Error('タスクの取得に失敗しました');
+        }
+        const data = await response.json();
+        setTasks(data);
+      } catch (err) {
+        console.error('タスク取得エラー:', err);
+        setError('タスクを読み込めませんでした。');
+      } finally {
         setLoading(false);
       }
     };
-    
-    if (session) {
-      fetchData();
-    }
-  }, [session]);
 
-  // AIエージェントの励ましメッセージを生成
-  const generateMotivationalMessage = (statsData: any) => {
-    if (!statsData) return;
-    
-    const messages = [
-      'フランスへの一歩を踏み出しましたね！素晴らしい進捗です。',
-      '今日も一つずつタスクをこなしていきましょう。フランスがあなたを待っています！',
-      'タスクの完了は、新しい生活への一歩です。頑張りましょう！',
-      'ビザの準備は着実に進んでいます。あなたの努力が実を結びます。',
-      'パリのカフェでコーヒーを飲む日も近いですよ！',
-    ];
-    
-    // 完了率に応じたメッセージを追加
-    if (statsData.tasks && statsData.tasks.completionRate > 0) {
-      const completionRate = parseFloat(statsData.tasks.completionRate);
-      
-      if (completionRate >= 75) {
-        messages.push('素晴らしい進捗です！もう少しでフランスへの準備が整いますね。');
-      } else if (completionRate >= 50) {
-        messages.push('タスクの半分以上が完了していますね。この調子で頑張りましょう！');
-      } else if (completionRate >= 25) {
-        messages.push('一歩一歩着実に前進していますね。引き続き頑張りましょう！');
-      } else {
-        messages.push('始めたばかりですね。焦らず一つずつ進めていきましょう。');
-      }
-    }
-    
-    // ランダムにメッセージを選択
-    const randomIndex = Math.floor(Math.random() * messages.length);
-    setMotivationalMessage(messages[randomIndex]);
+    fetchTasks();
+  }, []);
+
+  // ログアウト処理
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
+    router.push('/auth');
   };
 
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4">
-        <div className="flex justify-center items-center min-h-[60vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto px-4">
-      {/* ユーザー歓迎メッセージ */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">
-          ようこそ、{session?.user?.name || 'ユーザー'}さん
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          Migraleがあなたのフランス移住をサポートします
-        </p>
-      </div>
-      
-      {/* AIエージェントの励ましメッセージ */}
-      {motivationalMessage && (
-        <div className="bg-accent/20 border border-accent rounded-lg p-4 mb-8">
-          <div className="flex items-start gap-4">
-            <div className="rounded-full bg-accent/30 p-2 text-accent-foreground">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bot"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
-            </div>
-            <div>
-              <h3 className="font-medium mb-1">AIエージェントからのメッセージ</h3>
-              <p className="text-muted-foreground">{motivationalMessage}</p>
-            </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* ヘッダー */}
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-900">Migrale</h1>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-gray-600">
+              ようこそ、{user.username || user.name || 'ユーザー'}さん
+            </span>
+            <button
+              onClick={handleLogout}
+              className="px-3 py-1 text-sm text-white bg-blue-600 rounded hover:bg-blue-700"
+            >
+              ログアウト
+            </button>
           </div>
         </div>
-      )}
-      
-      {/* 統計情報カード */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {/* 全タスク数 */}
-          <div className="bg-card rounded-lg border shadow-sm p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-medium">全タスク</h3>
-              <ListTodoIcon className="text-muted-foreground h-5 w-5" />
-            </div>
-            <p className="text-3xl font-bold">{stats.tasks.total}</p>
-          </div>
-          
-          {/* 完了タスク */}
-          <div className="bg-card rounded-lg border shadow-sm p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-medium">完了タスク</h3>
-              <CheckCircleIcon className="text-green-500 h-5 w-5" />
-            </div>
-            <p className="text-3xl font-bold">{stats.tasks.completed}</p>
-          </div>
-          
-          {/* 完了率 */}
-          <div className="bg-card rounded-lg border shadow-sm p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-medium">完了率</h3>
-              <div className="h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">%</div>
-            </div>
-            <p className="text-3xl font-bold">{stats.tasks.completionRate}%</p>
-          </div>
-          
-          {/* ビザ診断回数 */}
-          <div className="bg-card rounded-lg border shadow-sm p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-medium">ビザ診断回数</h3>
-              <FileTextIcon className="text-muted-foreground h-5 w-5" />
-            </div>
-            <p className="text-3xl font-bold">{stats.visaResponses.total}</p>
-          </div>
-        </div>
-      )}
-      
-      {/* 最近のタスク */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">最近のタスク</h2>
-          <Link 
-            href="/tasks"
-            className="text-sm text-primary hover:underline"
+      </header>
+
+      {/* メインコンテンツ */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* ウェルカムメッセージ */}
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-md p-6 mb-8 text-white">
+          <h2 className="text-xl font-bold mb-2">フランス移住計画を始めましょう</h2>
+          <p className="mb-4">
+            Migraleはあなたのフランス移住を段階的にサポートします。まずはビザ診断から始めて、最適なビザタイプを見つけましょう。
+          </p>
+          <Link
+            href="/questionnaire"
+            className="inline-block px-4 py-2 bg-white text-blue-600 rounded-md font-medium hover:bg-blue-50"
           >
-            すべて表示
+            ビザ診断を開始する
           </Link>
         </div>
-        
-        {recentTasks.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4">
-            {recentTasks.map((task: any) => (
-              <div 
-                key={task.id} 
-                className="bg-card rounded-lg border shadow-sm p-4 flex items-start gap-4"
-              >
-                <div className={`mt-1 rounded-full p-2 ${task.completed ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'}`}>
-                  {task.completed ? (
-                    <CheckCircleIcon className="h-5 w-5" />
-                  ) : (
-                    <CalendarIcon className="h-5 w-5" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <h3 className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
-                    {task.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">{task.description}</p>
-                  {task.dueDate && (
-                    <p className="text-sm text-muted-foreground mt-1 flex items-center">
-                      <CalendarIcon className="h-3 w-3 mr-1" />
-                      期限: {new Date(task.dueDate).toLocaleDateString('ja-JP')}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-card rounded-lg border shadow-sm p-8 text-center">
-            <p className="text-muted-foreground">まだタスクがありません</p>
-            <Link 
+
+        {/* タスクセクション */}
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold text-gray-900">移住タスク</h2>
+            <Link
               href="/tasks"
-              className="inline-block mt-2 text-sm text-primary hover:underline"
+              className="text-sm text-blue-600 hover:text-blue-800"
             >
-              タスクを作成する
+              すべて表示
             </Link>
           </div>
-        )}
-      </div>
-      
-      {/* クイックリンク */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Link 
-          href="/questionnaire"
-          className="bg-card hover:bg-accent/10 rounded-lg border shadow-sm p-6 text-center transition-colors"
-        >
-          <div className="rounded-full bg-primary/10 p-3 inline-block mb-4">
-            <FileTextIcon className="h-6 w-6 text-primary" />
+
+          {loading ? (
+            <div className="py-4 text-center text-gray-500">
+              読み込み中...
+            </div>
+          ) : error ? (
+            <div className="py-4 text-center text-red-500">
+              {error}
+            </div>
+          ) : tasks.length === 0 ? (
+            <div className="py-4 text-center text-gray-500">
+              タスクがありません。診断結果に基づいて新しいタスクが追加されます。
+            </div>
+          ) : (
+            <ul className="divide-y divide-gray-200">
+              {tasks.slice(0, 5).map((task) => (
+                <li key={task.id} className="py-3">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={task.completed}
+                      readOnly
+                      className="h-4 w-4 text-blue-600 rounded border-gray-300"
+                    />
+                    <div className="ml-3">
+                      <p className={`text-sm ${task.completed ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
+                        {task.title}
+                      </p>
+                      {task.dueDate && (
+                        <p className="text-xs text-gray-500">
+                          期限: {new Date(task.dueDate).toLocaleDateString('ja-JP')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* ヒントと文化紹介 */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-4">
+            フランス文化のヒント
+          </h2>
+          <div className="bg-blue-50 rounded-md p-4 border border-blue-100">
+            <p className="text-sm text-gray-700">
+              <span className="font-medium">今日のヒント:</span> フランスでは「Bonjour（ボンジュール）」の挨拶は非常に重要です。お店に入る時やサービスを受ける前に必ず挨拶をしましょう。
+            </p>
           </div>
-          <h3 className="font-bold mb-2">ビザ診断を受ける</h3>
-          <p className="text-sm text-muted-foreground">
-            質問に答えて、最適なビザタイプを見つけましょう
-          </p>
-        </Link>
-        
-        <Link 
-          href="/tasks"
-          className="bg-card hover:bg-accent/10 rounded-lg border shadow-sm p-6 text-center transition-colors"
-        >
-          <div className="rounded-full bg-primary/10 p-3 inline-block mb-4">
-            <ListTodoIcon className="h-6 w-6 text-primary" />
-          </div>
-          <h3 className="font-bold mb-2">タスク管理</h3>
-          <p className="text-sm text-muted-foreground">
-            ビザ申請に必要なタスクを管理しましょう
-          </p>
-        </Link>
-        
-        <Link 
-          href="/profile"
-          className="bg-card hover:bg-accent/10 rounded-lg border shadow-sm p-6 text-center transition-colors"
-        >
-          <div className="rounded-full bg-primary/10 p-3 inline-block mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          </div>
-          <h3 className="font-bold mb-2">プロファイル設定</h3>
-          <p className="text-sm text-muted-foreground">
-            アカウント情報を確認・更新する
-          </p>
-        </Link>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
