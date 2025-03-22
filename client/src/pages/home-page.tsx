@@ -110,7 +110,7 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* メインコンテンツエリア (2/3幅) */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-6" id="user-info">
               {/* ユーザーウェルカム */}
               <Card className="overflow-hidden" id="welcome-banner">
                 <div className="bg-gradient-to-r from-primary to-blue-600 p-6 text-white">
