@@ -1,82 +1,203 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
-@layer base {
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 248, 250, 252;
+  --background-end-rgb: 255, 255, 255;
+  --primary: 37, 99, 235;
+  --primary-foreground: 255, 255, 255;
+  --secondary: 229, 231, 235;
+  --secondary-foreground: 31, 41, 55;
+  --accent: 249, 250, 251;
+  --accent-foreground: 31, 41, 55;
+  --destructive: 239, 68, 68;
+  --destructive-foreground: 255, 255, 255;
+  --muted: 243, 244, 246;
+  --muted-foreground: 107, 114, 128;
+  --card: 255, 255, 255;
+  --card-foreground: 31, 41, 55;
+  --popover: 255, 255, 255;
+  --popover-foreground: 31, 41, 55;
+  --border: 229, 231, 235;
+  --input: 229, 231, 235;
+  --ring: 37, 99, 235;
+  --radius: 0.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 224 71.4% 4.1%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
- 
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
- 
-    --primary: 217 91.2% 59.8%;
-    --primary-foreground: 210 20% 98%;
- 
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 220.9 39.3% 11%;
- 
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
- 
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 220.9 39.3% 11%;
- 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 20% 98%;
-
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 224 71.4% 4.1%;
- 
-    --radius: 0.5rem;
-  }
- 
-  .dark {
-    --background: 224 71.4% 4.1%;
-    --foreground: 210 20% 98%;
- 
-    --card: 224 71.4% 4.1%;
-    --card-foreground: 210 20% 98%;
- 
-    --popover: 224 71.4% 4.1%;
-    --popover-foreground: 210 20% 98%;
- 
-    --primary: 217 91.2% 59.8%;
-    --primary-foreground: 210 20% 98%;
- 
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 20% 98%;
- 
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
- 
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
- 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
- 
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 216 34% 17%;
-  }
-}
- 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "palt";
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 15, 23, 42;
+    --background-end-rgb: 15, 23, 42;
+    --primary: 59, 130, 246;
+    --primary-foreground: 255, 255, 255;
+    --secondary: 30, 41, 59;
+    --secondary-foreground: 243, 244, 246;
+    --accent: 15, 23, 42;
+    --accent-foreground: 243, 244, 246;
+    --destructive: 239, 68, 68;
+    --destructive-foreground: 255, 255, 255;
+    --muted: 15, 23, 42;
+    --muted-foreground: 148, 163, 184;
+    --card: 30, 41, 59;
+    --card-foreground: 243, 244, 246;
+    --popover: 30, 41, 59;
+    --popover-foreground: 243, 244, 246;
+    --border: 30, 41, 59;
+    --input: 30, 41, 59;
+    --ring: 59, 130, 246;
   }
 }
 
-/* 日本語フォントのスタイル */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+  min-height: 100vh;
+}
+
+/* フランスの国旗カラーをアクセントとして使用 */
+.french-blue {
+  color: #0055a4;
+}
+
+.french-white {
+  color: #ffffff;
+}
+
+.french-red {
+  color: #ef4135;
+}
+
+.text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to right, #0055a4, #ef4135);
+}
+
+.btn-gradient {
+  background-image: linear-gradient(to right, #0055a4, #ef4135);
+  color: white;
+}
+
+/* ホバーアニメーション */
+.hover-scale {
+  transition: transform 0.2s ease-in-out;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+/* カード装飾 */
+.card-shadow {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 入力フォームスタイル */
+.form-input {
+  border-radius: var(--radius);
+  border: 1px solid rgb(var(--border));
+  padding: 0.5rem;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: rgb(var(--ring));
+  box-shadow: 0 0 0 2px rgba(var(--ring), 0.3);
+}
+
+/* ボタンスタイル */
+.btn {
+  border-radius: var(--radius);
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: rgb(var(--primary));
+  color: rgb(var(--primary-foreground));
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-secondary {
+  background-color: rgb(var(--secondary));
+  color: rgb(var(--secondary-foreground));
+}
+
+.btn-secondary:hover {
+  opacity: 0.9;
+}
+
+/* ツールチップスタイル */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgb(var(--popover));
+  color: rgb(var(--popover-foreground));
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  white-space: nowrap;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ナビゲーションメニュースタイル */
+.nav-link {
+  position: relative;
+  padding: 0.5rem 1rem;
+  transition: color 0.2s ease;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: rgb(var(--primary));
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+/* ページセクションのタイトル */
+.section-title {
+  position: relative;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background-image: linear-gradient(to right, #0055a4, #ef4135);
 }
