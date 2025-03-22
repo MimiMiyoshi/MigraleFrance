@@ -16,51 +16,51 @@ import { CheckCircle, AlertCircle, ArrowLeft, ArrowRight } from "lucide-react";
 const questions = [
   {
     id: "stayDuration",
-    question: "How long do you plan to stay in France?",
+    question: "フランスにはどのくらいの期間滞在する予定ですか？",
     options: [
-      { value: "short", label: "Less than 90 days" },
-      { value: "medium", label: "90 days to 1 year" },
-      { value: "long", label: "More than 1 year" },
-      { value: "permanent", label: "Permanently" }
+      { value: "short", label: "90日未満" },
+      { value: "medium", label: "90日から1年" },
+      { value: "long", label: "1年以上" },
+      { value: "permanent", label: "永住希望" }
     ]
   },
   {
     id: "purpose",
-    question: "What is the primary purpose of your stay?",
+    question: "滞在の主な目的は何ですか？",
     options: [
-      { value: "tourism", label: "Tourism / Visiting" },
-      { value: "study", label: "Education / Study" },
-      { value: "work", label: "Work / Employment" },
-      { value: "family", label: "Family Reunification" },
-      { value: "business", label: "Business / Investment" }
+      { value: "tourism", label: "観光 / 訪問" },
+      { value: "study", label: "教育 / 留学" },
+      { value: "work", label: "就労 / 雇用" },
+      { value: "family", label: "家族の呼び寄せ" },
+      { value: "business", label: "ビジネス / 投資" }
     ]
   },
   {
     id: "nationality",
-    question: "What is your nationality?",
+    question: "あなたの国籍は？",
     options: [
-      { value: "eu", label: "European Union Member State" },
-      { value: "nonEu", label: "Non-EU Country" }
+      { value: "eu", label: "欧州連合加盟国" },
+      { value: "nonEu", label: "EU以外の国" }
     ]
   },
   {
     id: "financialStatus",
-    question: "What is your financial situation?",
+    question: "あなたの経済状況は？",
     options: [
-      { value: "sufficient", label: "I have sufficient funds to support myself" },
-      { value: "scholarship", label: "I have a scholarship" },
-      { value: "employment", label: "I have a job offer in France" },
-      { value: "limited", label: "I have limited financial resources" }
+      { value: "sufficient", label: "自分の滞在費用を賄うのに十分な資金がある" },
+      { value: "scholarship", label: "奨学金を受給している" },
+      { value: "employment", label: "フランスでの仕事のオファーがある" },
+      { value: "limited", label: "経済的リソースが限られている" }
     ]
   },
   {
     id: "language",
-    question: "What is your French language proficiency?",
+    question: "フランス語の習熟度はどのくらいですか？",
     options: [
-      { value: "none", label: "No knowledge" },
-      { value: "basic", label: "Basic (A1-A2)" },
-      { value: "intermediate", label: "Intermediate (B1-B2)" },
-      { value: "advanced", label: "Advanced (C1-C2)" }
+      { value: "none", label: "知識なし" },
+      { value: "basic", label: "基礎レベル (A1-A2)" },
+      { value: "intermediate", label: "中級レベル (B1-B2)" },
+      { value: "advanced", label: "上級レベル (C1-C2)" }
     ]
   }
 ];
@@ -122,42 +122,42 @@ const QuestionnairePage = () => {
     
     // EU citizens don't need a visa
     if (nationality === "eu") {
-      return "EU Citizen - No Visa Required";
+      return "EU市民 - ビザ不要";
     }
     
     // Short stay tourism
     if (stayDuration === "short" && purpose === "tourism") {
-      return "Short-Stay Schengen Visa";
+      return "短期滞在シェンゲンビザ";
     }
     
     // Students
     if (purpose === "study") {
       if (stayDuration === "medium") {
-        return "Long-Stay Student Visa";
+        return "長期学生ビザ";
       } else if (stayDuration === "long") {
-        return "Long-Stay Student Visa with Residence Permit";
+        return "長期学生ビザ（滞在許可証付き）";
       }
     }
     
     // Workers
     if (purpose === "work") {
       if (financialStatus === "employment") {
-        return "Long-Stay Work Visa";
+        return "長期就労ビザ";
       }
     }
     
     // Family reunification
     if (purpose === "family") {
-      return "Family Reunification Visa";
+      return "家族呼び寄せビザ";
     }
     
     // Business/Investor
     if (purpose === "business") {
-      return "Talent Passport or Business Investor Visa";
+      return "高度人材パスポートまたは投資家ビザ";
     }
     
     // Default fallback
-    return "Long-Stay Visa (Further consultation recommended)";
+    return "長期滞在ビザ（詳細な相談を推奨）";
   };
 
   return (
@@ -167,14 +167,14 @@ const QuestionnairePage = () => {
       <main className="flex-grow py-12 bg-gray-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">France Visa Questionnaire</h1>
+            <h1 className="text-3xl font-bold text-gray-900">フランスビザ診断</h1>
             <p className="mt-2 text-gray-600">
-              Answer the following questions to get personalized visa recommendations.
+              以下の質問に答えて、あなたに合ったビザの提案を受け取りましょう。
             </p>
             <div className="mt-4">
               <Progress value={progress} className="h-2" />
               <p className="text-sm text-gray-500 mt-1">
-                Question {currentQuestionIndex + 1} of {questions.length}
+                質問 {currentQuestionIndex + 1} / {questions.length}
               </p>
             </div>
           </div>
@@ -206,7 +206,7 @@ const QuestionnairePage = () => {
                 disabled={currentQuestionIndex === 0}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
+                戻る
               </Button>
               <Button 
                 onClick={handleNext}
@@ -214,12 +214,12 @@ const QuestionnairePage = () => {
               >
                 {currentQuestionIndex < questions.length - 1 ? (
                   <>
-                    Next
+                    次へ
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 ) : (
                   <>
-                    Submit
+                    送信
                     <CheckCircle className="ml-2 h-4 w-4" />
                   </>
                 )}

@@ -27,47 +27,53 @@ type Task = {
 };
 
 const recommendedTasks: Record<string, Task[]> = {
-  "Short-Stay Schengen Visa": [
-    { title: "Prepare valid passport", description: "Ensure your passport is valid for at least 3 months beyond your planned departure date from France" },
-    { title: "Complete visa application form", description: "Fill out the Schengen visa application form" },
-    { title: "Book travel insurance", description: "Purchase travel insurance with minimum coverage of €30,000" },
-    { title: "Gather supporting documents", description: "Prepare travel itinerary, accommodation reservations, and proof of financial means" }
+  "短期滞在シェンゲンビザ": [
+    { title: "有効なパスポートの準備", description: "フランスからの出国予定日から少なくとも3ヶ月間有効なパスポートを確保してください" },
+    { title: "ビザ申請書の記入", description: "シェンゲンビザ申請書に記入してください" },
+    { title: "旅行保険の加入", description: "最低30,000ユーロの補償範囲を持つ旅行保険に加入してください" },
+    { title: "証明書類の収集", description: "旅程表、宿泊予約、および資金証明を準備してください" }
   ],
-  "Long-Stay Student Visa": [
-    { title: "Get acceptance letter", description: "Obtain an acceptance letter from a French educational institution" },
-    { title: "Prepare proof of financial resources", description: "Gather documents showing you have sufficient funds for your stay (approximately €615 per month)" },
-    { title: "Register with Campus France", description: "Complete the preliminary registration process if applicable to your country" },
-    { title: "Prepare accommodation proof", description: "Obtain proof of accommodation in France" }
+  "長期学生ビザ": [
+    { title: "入学許可書の取得", description: "フランスの教育機関からの入学許可書を取得してください" },
+    { title: "資金証明の準備", description: "滞在に十分な資金があることを示す書類を集めてください（月約615ユーロ）" },
+    { title: "Campus Franceへの登録", description: "あなたの国に適用される場合、予備登録プロセスを完了してください" },
+    { title: "宿泊証明の準備", description: "フランスでの宿泊証明を取得してください" }
   ],
-  "Long-Stay Work Visa": [
-    { title: "Obtain work contract", description: "Get a signed work contract from a French employer" },
-    { title: "Apply for work authorization", description: "Your employer must apply for work authorization from the French labor authorities" },
-    { title: "Prepare professional qualifications", description: "Gather certificates of your professional qualifications and experience" },
-    { title: "Prepare financial documents", description: "Prepare bank statements showing financial stability" }
+  "長期学生ビザ（滞在許可証付き）": [
+    { title: "入学許可書の取得", description: "フランスの教育機関からの入学許可書を取得してください" },
+    { title: "資金証明の準備", description: "滞在に十分な資金があることを示す書類を集めてください（月約615ユーロ）" },
+    { title: "Campus Franceへの登録", description: "あなたの国に適用される場合、予備登録プロセスを完了してください" },
+    { title: "宿泊証明の準備", description: "フランスでの宿泊証明を取得してください" }
   ],
-  "Family Reunification Visa": [
-    { title: "Gather family documents", description: "Collect marriage certificate, birth certificates, and other family relationship documents" },
-    { title: "Prepare sponsor's documents", description: "Gather the French resident's residence permit, proof of accommodation, and financial resources" },
-    { title: "Translate official documents", description: "Have all documents translated into French by a certified translator" },
-    { title: "Schedule medical examination", description: "Book a medical examination if required" }
+  "長期就労ビザ": [
+    { title: "労働契約書の取得", description: "フランスの雇用主から署名入りの労働契約書を取得してください" },
+    { title: "就労許可の申請", description: "雇用主はフランスの労働当局から就労許可を申請する必要があります" },
+    { title: "職業資格の準備", description: "あなたの職業資格と経験の証明書を集めてください" },
+    { title: "財務書類の準備", description: "財政的安定性を示す銀行明細書を準備してください" }
   ],
-  "Talent Passport or Business Investor Visa": [
-    { title: "Prepare business plan", description: "Create a detailed business plan for your investment or project in France" },
-    { title: "Gather financial evidence", description: "Compile documents showing financial capability to invest (minimum €30,000 for some categories)" },
-    { title: "Obtain professional references", description: "Gather recommendation letters and professional references" },
-    { title: "Prepare relevant diplomas/certificates", description: "Have your educational and professional certificates ready" }
+  "家族呼び寄せビザ": [
+    { title: "家族関係書類の収集", description: "結婚証明書、出生証明書、およびその他の家族関係書類を収集してください" },
+    { title: "スポンサーの書類の準備", description: "フランス居住者の滞在許可証、宿泊証明、および資金証明を集めてください" },
+    { title: "公式書類の翻訳", description: "すべての書類を認定翻訳者によってフランス語に翻訳してもらってください" },
+    { title: "健康診断の予約", description: "必要に応じて健康診断を予約してください" }
   ],
-  "Long-Stay Visa (Further consultation recommended)": [
-    { title: "Schedule consultation", description: "Book an appointment with the French consulate for personalized guidance" },
-    { title: "Prepare basic documents", description: "Gather passport, photos, and basic identification documents" },
-    { title: "Research visa categories", description: "Research different visa categories that might apply to your situation" },
-    { title: "Check financial requirements", description: "Understand the financial requirements for different visa types" }
+  "高度人材パスポートまたは投資家ビザ": [
+    { title: "ビジネスプランの準備", description: "フランスでの投資やプロジェクトのための詳細なビジネスプランを作成してください" },
+    { title: "財務証明の収集", description: "投資する財政的能力を示す書類を編集してください（一部のカテゴリでは最低30,000ユーロ）" },
+    { title: "専門的な推薦状の取得", description: "推薦状や専門的な参考資料を集めてください" },
+    { title: "関連する学位/証明書の準備", description: "あなたの教育や専門的な証明書を準備してください" }
   ],
-  "EU Citizen - No Visa Required": [
-    { title: "Prepare valid ID card or passport", description: "Ensure you have a valid national ID card or passport" },
-    { title: "Register with local authorities", description: "For stays longer than 3 months, you may need to register with local authorities" },
-    { title: "Obtain European Health Insurance Card", description: "Apply for EHIC for temporary stays or register with French healthcare for longer stays" },
-    { title: "Research residency requirements", description: "Understand the requirements for establishing residency in France as an EU citizen" }
+  "長期滞在ビザ（詳細な相談を推奨）": [
+    { title: "相談の予約", description: "個別のガイダンスを受けるためにフランス領事館との面会を予約してください" },
+    { title: "基本的な書類の準備", description: "パスポート、写真、および基本的な身分証明書を集めてください" },
+    { title: "ビザカテゴリの調査", description: "あなたの状況に適用される可能性のある様々なビザカテゴリを調査してください" },
+    { title: "財政的要件の確認", description: "異なるビザタイプの財政的要件を理解してください" }
+  ],
+  "EU市民 - ビザ不要": [
+    { title: "有効なIDカードまたはパスポートの準備", description: "有効な国民IDカードまたはパスポートを持っていることを確認してください" },
+    { title: "地方自治体への登録", description: "3ヶ月以上の滞在の場合、地方自治体に登録する必要があるかもしれません" },
+    { title: "欧州健康保険カードの取得", description: "一時的な滞在にはEHICを申請するか、長期滞在の場合はフランスの医療制度に登録してください" },
+    { title: "居住要件の調査", description: "EU市民としてフランスでの居住を確立するための要件を理解してください" }
   ]
 };
 
@@ -171,31 +177,33 @@ const VisaResultPage = () => {
             <CardHeader className="bg-primary text-white rounded-t-lg">
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-6 w-6" />
-                <CardTitle>Your Visa Recommendation</CardTitle>
+                <CardTitle>あなたへのビザ推奨</CardTitle>
               </div>
               <CardDescription className="text-primary-foreground">
-                Based on your responses, here's our recommended visa type
+                あなたの回答に基づいて、適切なビザの種類をご案内します
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
               <h2 className="text-2xl font-bold text-center text-gray-900 mb-4">{response.result}</h2>
               <div className="p-4 bg-blue-50 rounded-lg">
-                <h3 className="font-medium text-blue-800 mb-2">About this visa:</h3>
+                <h3 className="font-medium text-blue-800 mb-2">このビザについて：</h3>
                 <p className="text-blue-700">
-                  {response.result === "Short-Stay Schengen Visa" && 
-                    "The Schengen visa allows stays up to 90 days in any 180-day period. It's suitable for tourism, business trips, or visiting family."}
-                  {response.result === "Long-Stay Student Visa" && 
-                    "This visa allows you to study at a French institution for more than 90 days. You'll need to apply for a residence permit upon arrival."}
-                  {response.result === "Long-Stay Work Visa" && 
-                    "For employment in France lasting more than 90 days. Your employer must obtain work authorization before you apply."}
-                  {response.result === "Family Reunification Visa" && 
-                    "This visa allows family members to join relatives legally residing in France."}
-                  {response.result === "Talent Passport or Business Investor Visa" && 
-                    "For entrepreneurs, investors, or highly skilled professionals. Offers simplified access to multi-year residence permits."}
-                  {response.result === "Long-Stay Visa (Further consultation recommended)" && 
-                    "Your situation requires personalized guidance. We recommend consulting directly with French consular services."}
-                  {response.result === "EU Citizen - No Visa Required" && 
-                    "As an EU citizen, you don't need a visa to enter, live or work in France. For stays longer than 3 months, you may need to register with local authorities."}
+                  {response.result === "短期滞在シェンゲンビザ" && 
+                    "シェンゲンビザは180日間のうち最大90日までの滞在を許可します。観光、ビジネス旅行、家族訪問に適しています。"}
+                  {response.result === "長期学生ビザ" && 
+                    "このビザは、90日以上のフランスの教育機関での留学を許可します。到着後に滞在許可証を申請する必要があります。"}
+                  {response.result === "長期学生ビザ（滞在許可証付き）" && 
+                    "このビザは、1年以上のフランスの教育機関での留学を許可します。滞在許可証も付与されます。"}
+                  {response.result === "長期就労ビザ" && 
+                    "フランスでの90日以上の雇用のためのビザです。申請前に雇用主が就労許可を取得する必要があります。"}
+                  {response.result === "家族呼び寄せビザ" && 
+                    "このビザは、フランスに合法的に居住している親族と一緒に住むことを家族に許可するものです。"}
+                  {response.result === "高度人材パスポートまたは投資家ビザ" && 
+                    "起業家、投資家、高度な専門職向けのビザです。複数年の滞在許可へのアクセスが簡素化されています。"}
+                  {response.result === "長期滞在ビザ（詳細な相談を推奨）" && 
+                    "あなたの状況には個別のガイダンスが必要です。フランス領事館サービスに直接相談されることをお勧めします。"}
+                  {response.result === "EU市民 - ビザ不要" && 
+                    "EU市民として、フランスへの入国、居住、就労にビザは必要ありません。3ヶ月以上の滞在の場合は、地元の当局に登録する必要があるかもしれません。"}
                 </p>
               </div>
             </CardContent>
