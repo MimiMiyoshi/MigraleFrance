@@ -301,65 +301,7 @@ const HomePage = () => {
           </div>
         </div>
 
-        {/* ご利用ガイド */}
-        <div className="py-12 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-extrabold text-gray-900">
-                ご利用方法
-              </h2>
-              <p className="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
-                シンプルなプロセスでフランス生活への最適な道をご案内します
-              </p>
-            </div>
 
-            <div className="mt-10">
-              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                <Card>
-                  <CardHeader>
-                    <div className="bg-primary/10 p-3 w-12 h-12 rounded-lg mb-4 flex items-center justify-center">
-                      <BookOpen className="h-6 w-6 text-primary" />
-                    </div>
-                    <CardTitle>質問に回答</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-500">
-                      フランス移住計画についての簡単な質問に答えてください。
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <div className="bg-primary/10 p-3 w-12 h-12 rounded-lg mb-4 flex items-center justify-center">
-                      <FileCheck className="h-6 w-6 text-primary" />
-                    </div>
-                    <CardTitle>おすすめのビザを取得</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-500">
-                      あなたの回答に基づいたパーソナライズされたビザの推奨を受け取りましょう。
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <div className="bg-primary/10 p-3 w-12 h-12 rounded-lg mb-4 flex items-center justify-center">
-                      <Plane className="h-6 w-6 text-primary" />
-                    </div>
-                    <CardTitle>移住の準備</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-500">
-                      フランスへの移住準備のためのパーソナライズされたタスクリストに従ってください。
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* CTA Section */}
         <div className="bg-primary">
