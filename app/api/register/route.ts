@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { insertUserSchema } from '../../shared/schema';
-import { createUser, getUserByEmail, getUserByUsername } from '../../lib/db';
 import { hashPassword } from '../../utils/auth';
+import { createUser, getUserByUsername, getUserByEmail } from '../../lib/db';
+import { insertUserSchema } from '../../shared/schema';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,38 +18,35 @@ export async function POST(request: NextRequest) {
     
     const { username, email, password } = validationResult.data;
     
-    // ユーザー名またはメールアドレスが既に存在するか確認
-    const existingByUsername = await getUserByUsername(username);
-    if (existingByUsername) {
+    // ユーザー名の重複チェック
+    const existingUsername = await getUserByUsername(username);
+    if (existingUsername) {
       return NextResponse.json(
         { error: 'このユーザー名は既に使用されています' },
-        { status: 409 }
+        { status: 400 }
       );
     }
     
-    const existingByEmail = await getUserByEmail(email);
-    if (existingByEmail) {
+    // メールアドレスの重複チェック
+    const existingEmail = await getUserByEmail(email);
+    if (existingEmail) {
       return NextResponse.json(
-        { error: 'このメールアドレスは既に登録されています' },
-        { status: 409 }
+        { error: 'このメールアドレスは既に使用されています' },
+        { status: 400 }
       );
     }
     
     // パスワードのハッシュ化
     const hashedPassword = await hashPassword(password);
     
-    // ユーザーの作成
-    const currentTime = new Date().toISOString();
+    // 新しいユーザーを作成
     const newUser = await createUser({
-      username,
-      email,
+      ...validationResult.data,
       password: hashedPassword,
-      role: 'user',
-      createdAt: currentTime,
-      updatedAt: currentTime
+      role: 'user', // デフォルトロール
     });
     
-    // パスワードを除いたユーザー情報を返す
+    // パスワードを含まない形でレスポンスを返す
     const { password: _, ...userWithoutPassword } = newUser;
     
     return NextResponse.json(userWithoutPassword, { status: 201 });

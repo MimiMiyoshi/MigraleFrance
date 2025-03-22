@@ -1,64 +1,77 @@
-import NextAuth, { NextAuthOptions } from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import { getUserByUsername } from '../../../lib/db';
-import { comparePasswords } from '../../../utils/auth';
+import { NextAuthOptions } from "next-auth";
+import NextAuth from "next-auth/next";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { getUserByUsername } from "../../../lib/db";
+import { comparePasswords } from "../../../utils/auth";
 
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      name: 'Credentials',
+      name: "Credentials",
       credentials: {
-        username: { label: 'ユーザー名', type: 'text' },
-        password: { label: 'パスワード', type: 'password' }
+        username: { label: "ユーザー名", type: "text" },
+        password: { label: "パスワード", type: "password" }
       },
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) {
           return null;
         }
 
-        const user = await getUserByUsername(credentials.username);
-        if (!user) return null;
-
-        const passwordValid = await comparePasswords(credentials.password, user.password);
-        if (!passwordValid) return null;
-
-        return {
-          id: user.id.toString(),
-          username: user.username,
-          email: user.email,
-          role: user.role || 'user'
-        };
+        try {
+          // ユーザー名でユーザーを検索
+          const user = await getUserByUsername(credentials.username);
+          
+          if (!user) {
+            return null;
+          }
+          
+          // パスワードを検証
+          const isPasswordValid = await comparePasswords(credentials.password, user.password);
+          
+          if (!isPasswordValid) {
+            return null;
+          }
+          
+          // パスワードを除外して返す
+          const { password, ...userWithoutPassword } = user;
+          return userWithoutPassword;
+        } catch (error) {
+          console.error("認証エラー:", error);
+          return null;
+        }
       }
     })
   ],
-  session: {
-    strategy: 'jwt'
+  pages: {
+    signIn: "/auth", // カスタムサインインページ
+    signOut: "/auth",
+    error: "/auth", // エラー発生時に表示するページ
   },
   callbacks: {
     async jwt({ token, user }) {
+      // 初回サインイン時にユーザー情報をトークンに保存
       if (user) {
-        token.id = parseInt(user.id as string);
+        token.id = user.id;
         token.username = user.username;
         token.role = user.role;
       }
       return token;
     },
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id;
-        session.user.username = token.username;
-        session.user.role = token.role;
-      }
+      // セッションにユーザー情報を追加
+      session.user.id = token.id as number;
+      session.user.username = token.username as string;
+      session.user.role = token.role as string;
       return session;
     }
   },
-  pages: {
-    signIn: '/auth',
-    newUser: '/auth',
-    error: '/auth'
-  }
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30日
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === "development",
 };
 
 const handler = NextAuth(authOptions);
-
 export { handler as GET, handler as POST };
