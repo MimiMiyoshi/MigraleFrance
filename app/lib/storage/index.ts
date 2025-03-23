@@ -1,7 +1,17 @@
-import { users, type User, type InsertUser, visaTasks, type VisaTask, type InsertVisaTask, visaResponses, type VisaResponse, type InsertVisaResponse } from "@shared/schema";
+import {
+  users,
+  type User,
+  type InsertUser,
+  visaTasks,
+  type VisaTask,
+  type InsertVisaTask,
+  visaResponses,
+  type VisaResponse,
+  type InsertVisaResponse,
+} from "../../shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 import connectPg from "connect-pg-simple";
 
 const MemoryStore = createMemoryStore(session);
@@ -13,17 +23,20 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  
+
   getTasksByUserId(userId: number): Promise<VisaTask[]>;
   getTask(id: number): Promise<VisaTask | undefined>;
   createTask(task: InsertVisaTask): Promise<VisaTask>;
-  updateTask(id: number, task: Partial<VisaTask>): Promise<VisaTask | undefined>;
+  updateTask(
+    id: number,
+    task: Partial<VisaTask>
+  ): Promise<VisaTask | undefined>;
   deleteTask(id: number): Promise<boolean>;
-  
+
   getResponsesByUserId(userId: number): Promise<VisaResponse[]>;
   getResponse(id: number): Promise<VisaResponse | undefined>;
   createResponse(response: InsertVisaResponse): Promise<VisaResponse>;
-  
+
   sessionStore: any; // Using any for session store compatibility
 }
 
@@ -45,7 +58,7 @@ export class MemStorage implements IStorage {
     this.currentTaskId = 1;
     this.currentResponseId = 1;
     this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000 // prune expired entries every 24h
+      checkPeriod: 86400000, // prune expired entries every 24h
     });
   }
 
@@ -55,24 +68,22 @@ export class MemStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
-      (user) => user.username === username,
+      (user) => user.username === username
     );
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.email === email,
-    );
+    return Array.from(this.users.values()).find((user) => user.email === email);
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { 
-      ...insertUser, 
+    const user: User = {
+      ...insertUser,
       id,
       role: "user",
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
     this.users.set(id, user);
     return user;
@@ -80,7 +91,7 @@ export class MemStorage implements IStorage {
 
   async getTasksByUserId(userId: number): Promise<VisaTask[]> {
     return Array.from(this.tasks.values()).filter(
-      (task) => task.userId === userId,
+      (task) => task.userId === userId
     );
   }
 
@@ -95,10 +106,13 @@ export class MemStorage implements IStorage {
     return newTask;
   }
 
-  async updateTask(id: number, taskUpdate: Partial<VisaTask>): Promise<VisaTask | undefined> {
+  async updateTask(
+    id: number,
+    taskUpdate: Partial<VisaTask>
+  ): Promise<VisaTask | undefined> {
     const task = this.tasks.get(id);
     if (!task) return undefined;
-    
+
     const updatedTask = { ...task, ...taskUpdate };
     this.tasks.set(id, updatedTask);
     return updatedTask;
@@ -110,7 +124,7 @@ export class MemStorage implements IStorage {
 
   async getResponsesByUserId(userId: number): Promise<VisaResponse[]> {
     return Array.from(this.responses.values()).filter(
-      (response) => response.userId === userId,
+      (response) => response.userId === userId
     );
   }
 
@@ -133,7 +147,7 @@ export class SupabaseStorage implements IStorage {
 
   constructor() {
     console.log("Initializing Supabase client...");
-    
+
     // Initialize Supabase client
     this.supabase = createClient(
       process.env.SUPABASE_URL!,
@@ -143,41 +157,41 @@ export class SupabaseStorage implements IStorage {
     // Use memory store for sessions for now
     // In a production environment, you would use a PostgreSQL-based session store
     this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000 // prune expired entries every 24h
+      checkPeriod: 86400000, // prune expired entries every 24h
     });
-    
+
     console.log("Supabase client initialized successfully");
   }
 
   async getUser(id: number): Promise<User | undefined> {
     const { data, error } = await this.supabase
-      .from('users')
-      .select('*')
-      .eq('id', id)
+      .from("users")
+      .select("*")
+      .eq("id", id)
       .single();
-    
+
     if (error || !data) return undefined;
     return data as User;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     const { data, error } = await this.supabase
-      .from('users')
-      .select('*')
-      .eq('username', username)
+      .from("users")
+      .select("*")
+      .eq("username", username)
       .single();
-    
+
     if (error || !data) return undefined;
     return data as User;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     const { data, error } = await this.supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
+      .from("users")
+      .select("*")
+      .eq("email", email)
       .single();
-    
+
     if (error || !data) return undefined;
     return data as User;
   }
@@ -186,131 +200,134 @@ export class SupabaseStorage implements IStorage {
     // Supabase will handle setting default values based on the SQL table definition
     // But let's map our user object to match the expected fields
     const user = {
-      ...insertUser
+      ...insertUser,
     };
-    
+
     // Insert the user into Supabase
     const { data, error } = await this.supabase
-      .from('users')
+      .from("users")
       .insert(user)
       .select()
       .single();
-    
+
     if (error) {
       console.error("Error creating user:", error);
       throw new Error(`Failed to create user: ${error.message}`);
     }
-    
+
     // Map the database response back to our expected schema
     const userResponse = {
-      ...data
+      ...data,
     } as User;
-    
+
     return userResponse;
   }
 
   async getTasksByUserId(userId: number): Promise<VisaTask[]> {
     const { data, error } = await this.supabase
-      .from('visa_tasks')
-      .select('*')
-      .eq('user_id', userId);
-    
+      .from("visa_tasks")
+      .select("*")
+      .eq("user_id", userId);
+
     if (error) {
       console.error("Error fetching tasks:", error);
       return [];
     }
-    
+
     return data as VisaTask[];
   }
 
   async getTask(id: number): Promise<VisaTask | undefined> {
     const { data, error } = await this.supabase
-      .from('visa_tasks')
-      .select('*')
-      .eq('id', id)
+      .from("visa_tasks")
+      .select("*")
+      .eq("id", id)
       .single();
-    
+
     if (error || !data) return undefined;
     return data as VisaTask;
   }
 
   async createTask(task: InsertVisaTask): Promise<VisaTask> {
     const { data, error } = await this.supabase
-      .from('visa_tasks')
+      .from("visa_tasks")
       .insert(task)
       .select()
       .single();
-    
+
     if (error) {
       console.error("Error creating task:", error);
       throw new Error(`Failed to create task: ${error.message}`);
     }
-    
+
     return data as VisaTask;
   }
 
-  async updateTask(id: number, taskUpdate: Partial<VisaTask>): Promise<VisaTask | undefined> {
+  async updateTask(
+    id: number,
+    taskUpdate: Partial<VisaTask>
+  ): Promise<VisaTask | undefined> {
     const { data, error } = await this.supabase
-      .from('visa_tasks')
+      .from("visa_tasks")
       .update(taskUpdate)
-      .eq('id', id)
+      .eq("id", id)
       .select()
       .single();
-    
+
     if (error || !data) {
       console.error("Error updating task:", error);
       return undefined;
     }
-    
+
     return data as VisaTask;
   }
 
   async deleteTask(id: number): Promise<boolean> {
     const { error } = await this.supabase
-      .from('visa_tasks')
+      .from("visa_tasks")
       .delete()
-      .eq('id', id);
-    
+      .eq("id", id);
+
     return !error;
   }
 
   async getResponsesByUserId(userId: number): Promise<VisaResponse[]> {
     const { data, error } = await this.supabase
-      .from('visa_responses')
-      .select('*')
-      .eq('user_id', userId);
-    
+      .from("visa_responses")
+      .select("*")
+      .eq("user_id", userId);
+
     if (error) {
       console.error("Error fetching responses:", error);
       return [];
     }
-    
+
     return data as VisaResponse[];
   }
 
   async getResponse(id: number): Promise<VisaResponse | undefined> {
     const { data, error } = await this.supabase
-      .from('visa_responses')
-      .select('*')
-      .eq('id', id)
+      .from("visa_responses")
+      .select("*")
+      .eq("id", id)
       .single();
-    
+
     if (error || !data) return undefined;
     return data as VisaResponse;
   }
 
   async createResponse(response: InsertVisaResponse): Promise<VisaResponse> {
     const { data, error } = await this.supabase
-      .from('visa_responses')
+      .from("visa_responses")
       .insert(response)
       .select()
       .single();
-    
+
     if (error) {
       console.error("Error creating response:", error);
       throw new Error(`Failed to create response: ${error.message}`);
     }
-    
+
     return data as VisaResponse;
   }
 }
