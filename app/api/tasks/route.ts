@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { z } from "zod";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { authOptions } from "../../lib/auth";
 import { storage } from "@/lib/storage";
 import { insertVisaTaskSchema } from "@/shared/schema";
 
