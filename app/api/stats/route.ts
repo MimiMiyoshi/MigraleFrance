@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route';
-import { getTasksByUserId, getResponsesByUserId } from '../../lib/db';
+import { getTasksByUserId, getResponsesByUserId } from '@/lib/db';
 
 /**
  * ユーザーのタスク統計情報を取得するAPI
@@ -10,47 +10,59 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session) {
+    if (!session?.user) {
       return NextResponse.json(
         { error: '認証されていません' },
         { status: 401 }
       );
     }
     
-    const userId = session.user.id;
-    
     // ユーザーのタスクを取得
-    const tasks = await getTasksByUserId(userId);
+    const tasks = await getTasksByUserId(session.user.id);
     
-    // ユーザーのビザ回答を取得
-    const responses = await getResponsesByUserId(userId);
-    
-    // 統計データを計算
+    // タスク統計を計算
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter(task => task.completed).length;
-    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const pendingTasks = totalTasks - completedTasks;
+    let completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+    completionRate = Math.round(completionRate * 10) / 10; // 小数点第一位まで表示
     
-    const totalResponses = responses.length;
-    const lastResponse = totalResponses > 0 ? responses[totalResponses - 1] : null;
+    // 今日の日付から期限切れタスクを計算
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const overdueTasks = tasks.filter(task => {
+      if (!task.dueDate || task.completed) return false;
+      const dueDate = new Date(task.dueDate);
+      return dueDate < today;
+    }).length;
     
-    // 直近のビザ結果
-    const latestVisaResult = lastResponse ? lastResponse.result : null;
+    // ビザ回答履歴を取得
+    const responses = await getResponsesByUserId(session.user.id);
+    const visaResponseCount = responses.length;
     
-    // 統計データをまとめる
-    const stats = {
+    // 今日期限のタスク
+    const todayTasks = tasks.filter(task => {
+      if (!task.dueDate || task.completed) return false;
+      const dueDate = new Date(task.dueDate);
+      return dueDate.getDate() === today.getDate() && 
+             dueDate.getMonth() === today.getMonth() && 
+             dueDate.getFullYear() === today.getFullYear();
+    }).length;
+    
+    // 統計情報を返す
+    return NextResponse.json({
       totalTasks,
       completedTasks,
+      pendingTasks,
+      overdueTasks,
+      todayTasks,
       completionRate,
-      pendingTasks: totalTasks - completedTasks,
-      totalVisaResponses: totalResponses,
-      latestVisaResult,
-    };
-    
-    return NextResponse.json(stats);
+      visaResponseCount,
+    });
   } catch (error) {
     console.error('統計情報取得エラー:', error);
     return NextResponse.json(
-      { error: '統計情報の取得中にエラーが発生しました' },
+      { error: '統計情報の取得に失敗しました' },
       { status: 500 }
     );
   }
