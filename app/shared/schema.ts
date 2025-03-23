@@ -33,7 +33,6 @@ export const insertVisaTaskSchema = createInsertSchema(visaTasks).pick({
   title: true,
   description: true,
   dueDate: true,
-  completed: true,
 });
 
 export const visaResponses = pgTable("visa_responses", {
