@@ -2,11 +2,18 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { storage } from "./storage";
 import { comparePasswords } from "../utils/auth";
+import type { RequestInternal } from "next-auth";
+import type { User as DbUser } from "../shared/schema";
 
 declare module "next-auth" {
   interface User {
     id: number;
     username: string;
+    email: string;
+    password: string;
+    role: "admin" | "user" | null;
+    createdAt: Date | null;
+    updatedAt: Date | null;
   }
   interface Session {
     user: {
@@ -18,7 +25,7 @@ declare module "next-auth" {
 
 declare module "next-auth/jwt" {
   interface JWT {
-    id: string | number;
+    id: number;
     username: string;
   }
 }
@@ -31,7 +38,7 @@ export const authOptions: NextAuthOptions = {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.username || !credentials?.password) {
           return null;
         }
@@ -49,26 +56,22 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const { password, ...userWithoutPassword } = user;
-        return userWithoutPassword;
+        return user;
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = String(user.id);
+        token.id =
+          typeof user.id === "string" ? parseInt(user.id, 10) : user.id;
         token.username = user.username;
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
-        if (typeof token.id === "string") {
-          session.user.id = parseInt(token.id, 10);
-        } else if (typeof token.id === "number") {
-          session.user.id = token.id;
-        }
+        session.user.id = token.id;
         session.user.username = token.username;
       }
       return session;
