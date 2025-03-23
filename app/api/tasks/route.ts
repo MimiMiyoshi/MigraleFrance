@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { z } from "zod";
 import { authOptions } from "../../lib/auth";
-import { storage } from "@/lib/storage";
-import { insertVisaTaskSchema } from "@/shared/schema";
-import type { InsertVisaTask } from "@/shared/schema";
+import { storage } from "../../lib/storage";
+import { insertVisaTaskSchema } from "../../shared/schema";
+import type { InsertVisaTask } from "../../shared/schema";
 
 /**
  * ユーザーのタスク一覧を取得するAPI
