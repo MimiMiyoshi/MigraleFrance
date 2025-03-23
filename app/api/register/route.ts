@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const { username, email, password } = validationResult.data;
+    const { username, email, password, passwordConfirm, ...rest } = validationResult.data;
     
     // ユーザー名が既に存在するか確認
     const existingUsername = await getUserByUsername(username);

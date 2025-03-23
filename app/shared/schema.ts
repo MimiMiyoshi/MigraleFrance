@@ -16,6 +16,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   email: true,
   password: true,
+  role: true,
 });
 
 export const visaTasks = pgTable("visa_tasks", {
@@ -32,6 +33,7 @@ export const insertVisaTaskSchema = createInsertSchema(visaTasks).pick({
   title: true,
   description: true,
   dueDate: true,
+  completed: true,
 });
 
 export const visaResponses = pgTable("visa_responses", {

@@ -1,14 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
-if (!process.env.SUPABASE_URL) {
-  throw new Error('Missing SUPABASE_URL environment variable');
+// 環境変数からSupabaseの接続情報を取得
+const supabaseUrl = process.env.SUPABASE_URL as string;
+const supabaseKey = process.env.SUPABASE_KEY as string;
+
+// Supabaseクライアントの作成
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Supabase URL and key must be provided');
 }
 
-if (!process.env.SUPABASE_KEY) {
-  throw new Error('Missing SUPABASE_KEY environment variable');
-}
-
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
-
+// Supabaseクライアントをエクスポート
 export const supabase = createClient(supabaseUrl, supabaseKey);

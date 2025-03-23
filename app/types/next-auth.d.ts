@@ -1,6 +1,4 @@
-import { User as SchemaUser } from "../shared/schema";
-import "next-auth";
-import { DefaultSession } from "next-auth";
+import { User as SchemaUser } from "@/shared/schema";
 
 declare module "next-auth" {
   /**
@@ -21,7 +19,9 @@ declare module "next-auth" {
    * User型の拡張
    */
   interface User extends SchemaUser {}
+}
 
+declare module "next-auth/jwt" {
   /** JWT内のユーザー情報を拡張 */
   interface JWT {
     id: number;
