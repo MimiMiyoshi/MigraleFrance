@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/button";
 import { Bell, X, Info, Calendar } from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 
@@ -74,7 +81,9 @@ export function NotificationItem({
       return (
         <div className="mt-2 text-sm text-gray-600">
           <span className="font-medium">期限: </span>
-          {format(new Date(notification.dueDate), "yyyy年MM月dd日", { locale: ja })}
+          {format(new Date(notification.dueDate), "yyyy年MM月dd日", {
+            locale: ja,
+          })}
         </div>
       );
     }
@@ -84,7 +93,9 @@ export function NotificationItem({
   return (
     <Card
       className={`mb-3 border transition-all duration-300 ${getBgColor()} ${
-        isVisible ? "opacity-100 transform translate-y-0" : "opacity-0 transform -translate-y-2"
+        isVisible
+          ? "opacity-100 transform translate-y-0"
+          : "opacity-0 transform -translate-y-2"
       }`}
     >
       <CardHeader className="py-3 px-4 flex flex-row items-start justify-between space-y-0">
@@ -116,7 +127,9 @@ export function NotificationItem({
       </CardContent>
       <CardFooter className="py-2 px-4 flex justify-between">
         <div className="text-xs text-gray-500">
-          {format(new Date(notification.createdAt), "yyyy/MM/dd HH:mm", { locale: ja })}
+          {format(new Date(notification.createdAt), "yyyy/MM/dd HH:mm", {
+            locale: ja,
+          })}
         </div>
         <div className="flex gap-2">
           {!notification.read && (
@@ -160,9 +173,7 @@ export function NotificationList({
 }: NotificationListProps) {
   if (notifications.length === 0) {
     return (
-      <div className="py-6 text-center text-gray-500">
-        通知はありません
-      </div>
+      <div className="py-6 text-center text-gray-500">通知はありません</div>
     );
   }
 

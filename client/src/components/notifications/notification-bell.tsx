@@ -1,15 +1,11 @@
 import React, { useState } from "react";
 import { Bell } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { useNotifications } from "@/hooks/use-notifications";
+import { Button } from "../ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { useNotifications } from "../../hooks/use-notifications";
 import { NotificationList } from "./notification";
 import { useLocation } from "wouter";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "../ui/badge";
 
 export function NotificationBell() {
   const {

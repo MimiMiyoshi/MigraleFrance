@@ -1,7 +1,7 @@
 import React from "react";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "../../hooks/use-auth";
 import { Link, useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/button";
 import { Home } from "lucide-react";
 import {
   DropdownMenu,
@@ -10,9 +10,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { NotificationBell } from "@/components/notifications/notification-bell";
+} from "../ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "../ui/avatar";
+import { NotificationBell } from "../notifications/notification-bell";
 
 const Header = () => {
   const { user, logoutMutation } = useAuth();
@@ -33,40 +33,42 @@ const Header = () => {
               onClick={() => setLocation("/")}
             >
               <Home className="h-8 w-8 text-primary" />
-              <span className="ml-2 text-lg font-semibold text-gray-900">Migrale</span>
+              <span className="ml-2 text-lg font-semibold text-gray-900">
+                Migrale
+              </span>
             </Button>
-            
+
             {user && (
               <nav className="ml-6 flex space-x-4">
                 <Button
                   variant="ghost"
                   className={`px-3 py-2 h-auto rounded-md text-sm font-medium ${
-                    location === "/" 
-                      ? "text-primary bg-primary/10" 
+                    location === "/"
+                      ? "text-primary bg-primary/10"
                       : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   }`}
                   onClick={() => setLocation("/")}
                 >
                   ホーム
                 </Button>
-                
+
                 <Button
                   variant="ghost"
                   className={`px-3 py-2 h-auto rounded-md text-sm font-medium ${
-                    location === "/questionnaire" 
-                      ? "text-primary bg-primary/10" 
+                    location === "/questionnaire"
+                      ? "text-primary bg-primary/10"
                       : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   }`}
                   onClick={() => setLocation("/questionnaire")}
                 >
                   アンケート
                 </Button>
-                
+
                 <Button
                   variant="ghost"
                   className={`px-3 py-2 h-auto rounded-md text-sm font-medium ${
-                    location === "/tasks" 
-                      ? "text-primary bg-primary/10" 
+                    location === "/tasks"
+                      ? "text-primary bg-primary/10"
                       : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   }`}
                   onClick={() => setLocation("/tasks")}
@@ -76,19 +78,19 @@ const Header = () => {
               </nav>
             )}
           </div>
-          
+
           <div className="flex items-center">
             {!user ? (
               <>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   className="text-primary hover:text-primary-dark"
                   onClick={() => setLocation("/auth")}
                 >
                   ログイン
                 </Button>
-                <Button 
-                  variant="default" 
+                <Button
+                  variant="default"
                   className="ml-2 bg-primary hover:bg-primary-dark"
                   onClick={() => setLocation("/auth")}
                 >
@@ -102,13 +104,19 @@ const Header = () => {
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center gap-2" id="user-info">
+                    <Button
+                      variant="ghost"
+                      className="flex items-center gap-2"
+                      id="user-info"
+                    >
                       <Avatar className="h-8 w-8">
                         <AvatarFallback className="bg-primary text-white">
                           {user.username.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-sm font-medium">{user.username}</span>
+                      <span className="text-sm font-medium">
+                        {user.username}
+                      </span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">

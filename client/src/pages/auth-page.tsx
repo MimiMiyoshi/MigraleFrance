@@ -1,12 +1,25 @@
-import { useAuth } from "@/hooks/use-auth";
+import { useState } from "react";
+import { useAuth } from "../hooks/use-auth";
+import { useLocation } from "wouter";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Separator } from "../components/ui/separator";
+import Header from "../components/layout/header";
+import Footer from "../components/layout/footer";
+import { Loader2 } from "lucide-react";
+import AuthTabs from "../components/auth/auth-tabs";
+import { useOnboarding } from "../hooks/use-onboarding";
 import { Redirect } from "wouter";
-import Header from "@/components/layout/header";
-import Footer from "@/components/layout/footer";
-import AuthTabs from "@/components/auth/auth-tabs";
-import { useEffect, useState } from "react";
-import { Loader2, HelpCircle } from "lucide-react";
-import { useOnboarding } from "@/hooks/use-onboarding";
-import { Button } from "@/components/ui/button";
+import { HelpCircle } from "lucide-react";
 
 const AuthPage = () => {
   const { user, isLoading } = useAuth();
@@ -28,7 +41,7 @@ const AuthPage = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      
+
       <div className="flex-grow flex items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
         <div className="max-w-md w-full" id="auth-form">
           <div className="flex justify-between items-center mb-4">
@@ -41,7 +54,7 @@ const AuthPage = () => {
           <AuthTabs activeTab={activeTab} setActiveTab={setActiveTab} />
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );

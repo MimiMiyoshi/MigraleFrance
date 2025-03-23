@@ -1,6 +1,12 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "../ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
 import { CalendarDays, X } from "lucide-react";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -17,28 +23,28 @@ const culturalFacts: CulturalFact[] = [
   {
     title: "フランスの地域の多様性",
     fact: "フランスには22の地域（régions）があり、それぞれ独自の文化、料理、そして時には独自の言語も持っています。",
-    emoji: "🗺️"
+    emoji: "🗺️",
   },
   {
     title: "フランスの挨拶",
     fact: "フランス人同士の挨拶では頬にキス（ビズ）をするのが一般的です。地域によって2回から4回まで異なります。",
-    emoji: "😘"
+    emoji: "😘",
   },
   {
     title: "パン文化",
     fact: "フランスでは毎日新鮮なバゲットを買うのが習慣です。サクサクの外側とふわふわの内側が特徴的なバゲットは、文化遺産として登録されています。",
-    emoji: "🥖"
+    emoji: "🥖",
   },
   {
     title: "カフェ文化",
     fact: "フランスのカフェはただのコーヒーショップではなく、社交と文化交流の場です。何時間も座ってコーヒー一杯で過ごすことも一般的です。",
-    emoji: "☕"
+    emoji: "☕",
   },
   {
     title: "フランスのシエスタ",
     fact: "特に南フランスでは、暑い日中に「シエスタ」と呼ばれる昼寝の時間があります。多くの店がこの時間帯に閉まります。",
-    emoji: "😴"
-  }
+    emoji: "😴",
+  },
 ];
 
 // ランダムな文化的事実を取得
@@ -70,7 +76,12 @@ export const ReminderNotification: React.FC<ReminderNotificationProps> = ({
             期限が近いタスク
           </CardTitle>
         </div>
-        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6"
+          onClick={onClose}
+        >
           <X className="h-4 w-4" />
         </Button>
       </CardHeader>
@@ -81,11 +92,16 @@ export const ReminderNotification: React.FC<ReminderNotificationProps> = ({
           {task.dueDate && (
             <div className="text-sm flex items-center gap-1.5 text-orange-700">
               <CalendarDays className="h-4 w-4" />
-              <span>期限: {format(new Date(task.dueDate), "yyyy年MM月dd日", { locale: ja })}</span>
+              <span>
+                期限:{" "}
+                {format(new Date(task.dueDate), "yyyy年MM月dd日", {
+                  locale: ja,
+                })}
+              </span>
             </div>
           )}
         </div>
-        
+
         <div className="mt-4 bg-white p-3 rounded-md border border-indigo-100 text-sm">
           <div className="flex items-center gap-2 mb-1 text-indigo-700">
             <span className="text-lg">{culturalFact.emoji}</span>
@@ -95,7 +111,7 @@ export const ReminderNotification: React.FC<ReminderNotificationProps> = ({
         </div>
       </CardContent>
       <CardFooter className="pt-2 pb-3 px-4">
-        <Button 
+        <Button
           className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
           onClick={onViewTask}
         >
