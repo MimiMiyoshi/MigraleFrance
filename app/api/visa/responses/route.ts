@@ -61,7 +61,6 @@ export async function POST(request: NextRequest) {
     const newResponse = await createResponse({
       ...result.data,
       userId,
-      createdAt: new Date().toISOString(),
     });
 
     return NextResponse.json(newResponse, { status: 201 });
