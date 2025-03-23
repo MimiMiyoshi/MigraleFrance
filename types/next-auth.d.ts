@@ -1,15 +1,9 @@
 import "next-auth";
-import { User } from "@shared/schema";
+import { User } from "../app/shared/schema";
 
 declare module "next-auth" {
   interface Session {
-    user: {
-      id: number;
-      username: string;
-      email?: string;
-      name?: string;
-      image?: string;
-    };
+    user: User;
   }
 }
 
