@@ -78,12 +78,13 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
+    const now = new Date();
     const user: User = {
       ...insertUser,
       id,
       role: "user",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     };
     this.users.set(id, user);
     return user;
@@ -101,7 +102,16 @@ export class MemStorage implements IStorage {
 
   async createTask(task: InsertVisaTask): Promise<VisaTask> {
     const id = this.currentTaskId++;
-    const newTask: VisaTask = { ...task, id, completed: false };
+    const now = new Date();
+    const newTask: VisaTask = {
+      ...task,
+      id,
+      description: task.description || null,
+      completed: false,
+      dueDate: task.dueDate || null,
+      createdAt: now,
+      updatedAt: now,
+    };
     this.tasks.set(id, newTask);
     return newTask;
   }
@@ -110,10 +120,14 @@ export class MemStorage implements IStorage {
     id: number,
     taskUpdate: Partial<VisaTask>
   ): Promise<VisaTask | undefined> {
-    const task = this.tasks.get(id);
-    if (!task) return undefined;
+    const existingTask = this.tasks.get(id);
+    if (!existingTask) return undefined;
 
-    const updatedTask = { ...task, ...taskUpdate };
+    const updatedTask = {
+      ...existingTask,
+      ...taskUpdate,
+      updatedAt: new Date(),
+    };
     this.tasks.set(id, updatedTask);
     return updatedTask;
   }
@@ -134,7 +148,13 @@ export class MemStorage implements IStorage {
 
   async createResponse(response: InsertVisaResponse): Promise<VisaResponse> {
     const id = this.currentResponseId++;
-    const newResponse: VisaResponse = { ...response, id };
+    const now = new Date();
+    const newResponse: VisaResponse = {
+      ...response,
+      id,
+      createdAt: now,
+      updatedAt: now,
+    };
     this.responses.set(id, newResponse);
     return newResponse;
   }
