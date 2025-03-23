@@ -1,22 +1,24 @@
-import { pgTable, text, serial, integer, boolean, json } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  serial,
+  integer,
+  boolean,
+  json,
+  timestamp,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Database table definitions
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
-  role: text("role").default("user"),
-  createdAt: text("created_at"),
-  updatedAt: text("updated_at"),
-});
-
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  email: true,
-  password: true,
-  role: true,
+  role: text("role", { enum: ["admin", "user"] }).default("user"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const visaTasks = pgTable("visa_tasks", {
@@ -25,34 +27,47 @@ export const visaTasks = pgTable("visa_tasks", {
   title: text("title").notNull(),
   description: text("description"),
   completed: boolean("completed").default(false),
-  dueDate: text("due_date"),
-});
-
-export const insertVisaTaskSchema = createInsertSchema(visaTasks).pick({
-  userId: true,
-  title: true,
-  description: true,
-  dueDate: true,
+  dueDate: timestamp("due_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const visaResponses = pgTable("visa_responses", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
-  responses: json("responses").notNull(),
-  result: text("result"),
-  createdAt: text("created_at").notNull(),
+  taskId: integer("task_id").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const insertVisaResponseSchema = createInsertSchema(visaResponses).pick({
-  userId: true,
-  responses: true,
-  result: true,
-  createdAt: true,
+// Zod schemas for validation
+export const insertUserSchema = createInsertSchema(users, {
+  username: z.string().min(3).max(50),
+  email: z.string().email(),
+  password: z.string().min(8),
+  role: z.enum(["admin", "user"]).optional(),
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
+export const insertVisaTaskSchema = createInsertSchema(visaTasks, {
+  userId: z.number(),
+  title: z.string().min(1),
+  description: z.string().optional(),
+  dueDate: z.string().datetime().optional(),
+});
+
+export const insertVisaResponseSchema = createInsertSchema(visaResponses, {
+  userId: z.number(),
+  taskId: z.number(),
+  content: z.string(),
+});
+
+// Type definitions using Drizzle's type inference
 export type User = typeof users.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
+
 export type VisaTask = typeof visaTasks.$inferSelect;
-export type InsertVisaTask = z.infer<typeof insertVisaTaskSchema>;
+export type InsertVisaTask = typeof visaTasks.$inferInsert;
+
 export type VisaResponse = typeof visaResponses.$inferSelect;
-export type InsertVisaResponse = z.infer<typeof insertVisaResponseSchema>;
+export type InsertVisaResponse = typeof visaResponses.$inferInsert;

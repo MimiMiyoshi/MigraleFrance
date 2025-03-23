@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../lib/auth";
 import { getTasksByUserId, getResponsesByUserId } from "../../lib/db";
+import { VisaResponse } from "../../shared/schema";
 
 /**
  * ユーザーのタスク統計情報を取得するAPI
@@ -48,14 +49,16 @@ export async function GET(request: NextRequest) {
     // 回答済みビザクエスチョネア数
     const visaResponsesCount = responses.length;
 
-    // 最新のビザ回答
+    // 最新のビザ回答を取得
+    const sortedResponses = [...responses].sort(
+      (a: VisaResponse, b: VisaResponse) => {
+        const dateA = new Date(a.createdAt || 0);
+        const dateB = new Date(b.createdAt || 0);
+        return dateB.getTime() - dateA.getTime();
+      }
+    );
     const latestResponse =
-      responses.length > 0
-        ? responses.sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          )[0]
-        : null;
+      sortedResponses.length > 0 ? sortedResponses[0] : null;
 
     // 統計情報をまとめる
     const stats = {
@@ -68,8 +71,8 @@ export async function GET(request: NextRequest) {
       },
       visa: {
         responsesCount: visaResponsesCount,
-        latestResult: latestResponse ? latestResponse.result : null,
-        latestResponseDate: latestResponse ? latestResponse.createdAt : null,
+        latestContent: latestResponse?.content ?? null,
+        latestResponseDate: latestResponse?.createdAt ?? null,
       },
     };
 
