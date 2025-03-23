@@ -3,10 +3,6 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import * as schema from "../drizzle/schema";
-import dotenv from "dotenv";
-
-// .env.localファイルを読み込む
-dotenv.config({ path: ".env.local" });
 
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
   throw new Error("NEXT_PUBLIC_SUPABASE_URL is not set");
