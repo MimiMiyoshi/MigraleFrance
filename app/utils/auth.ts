@@ -1,6 +1,7 @@
 import { scrypt, randomBytes, timingSafeEqual } from 'crypto';
 import { promisify } from 'util';
 
+// scrypt関数のPromiseラッパーを作成
 const scryptAsync = promisify(scrypt);
 
 /**

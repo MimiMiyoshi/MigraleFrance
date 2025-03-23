@@ -15,17 +15,24 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.username || !credentials?.password) {
           return null;
         }
-
+        
         try {
-          // ユーザー名でユーザーを取得
           const user = await getUserByUsername(credentials.username);
           
-          // ユーザーが存在しない、またはパスワードが一致しない場合
-          if (!user || !(await comparePasswords(credentials.password, user.password))) {
+          if (!user) {
             return null;
           }
           
-          // パスワードを除外して返す
+          const isPasswordValid = await comparePasswords(
+            credentials.password,
+            user.password
+          );
+          
+          if (!isPasswordValid) {
+            return null;
+          }
+          
+          // パスワードは含めずに返す
           const { password, ...userWithoutPassword } = user;
           return userWithoutPassword;
         } catch (error) {
@@ -35,10 +42,6 @@ export const authOptions: NextAuthOptions = {
       }
     })
   ],
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30日
-  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -51,21 +54,26 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (token) {
         session.user = {
-          ...session.user,
           id: token.id as number,
           username: token.username as string,
           role: token.role as string,
+          email: token.email,
+          name: token.name,
+          image: token.picture,
         };
       }
       return session;
-    },
+    }
   },
   pages: {
     signIn: '/auth',
-    signOut: '/auth',
     error: '/auth',
   },
-  secret: process.env.NEXTAUTH_SECRET || 'your-fallback-secret-should-be-changed',
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30日間
+  },
+  secret: process.env.NEXTAUTH_SECRET,
 };
 
 const handler = NextAuth(authOptions);

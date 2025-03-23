@@ -1,33 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserByUsername, getUserByEmail, createUser } from '@/lib/db';
-import { insertUserSchema } from '@/shared/schema';
-import { hashPassword } from '@/utils/auth';
 import { z } from 'zod';
+import { hashPassword } from '@/utils/auth';
+import { createUser, getUserByUsername, getUserByEmail } from '@/lib/db';
 
-// 登録用のスキーマ拡張（パスワード確認フィールド追加）
-const registerSchema = insertUserSchema.extend({
-  passwordConfirm: z.string().min(6, 'パスワード確認は6文字以上である必要があります'),
-}).refine(data => data.password === data.passwordConfirm, {
-  message: 'パスワードが一致しません',
-  path: ['passwordConfirm'],
+// 登録用バリデーションスキーマ
+const registerSchema = z.object({
+  username: z.string().min(3, 'ユーザー名は3文字以上必要です').max(50),
+  email: z.string().email('有効なメールアドレスを入力してください'),
+  password: z.string().min(8, 'パスワードは8文字以上必要です'),
 });
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    // バリデーション
-    const validationResult = registerSchema.safeParse(body);
-    if (!validationResult.success) {
+    // リクエストデータをバリデーション
+    const result = registerSchema.safeParse(body);
+    if (!result.success) {
       return NextResponse.json(
-        { error: '入力データが不正です', details: validationResult.error.format() },
+        { error: '入力データが無効です', details: result.error.format() },
         { status: 400 }
       );
     }
     
-    const { username, email, password, passwordConfirm, ...rest } = validationResult.data;
+    const { username, email, password } = result.data;
     
-    // ユーザー名が既に存在するか確認
+    // 既存ユーザーのチェック
     const existingUsername = await getUserByUsername(username);
     if (existingUsername) {
       return NextResponse.json(
@@ -36,19 +34,18 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // メールアドレスが既に存在するか確認
     const existingEmail = await getUserByEmail(email);
     if (existingEmail) {
       return NextResponse.json(
-        { error: 'このメールアドレスは既に使用されています' },
+        { error: 'このメールアドレスは既に登録されています' },
         { status: 400 }
       );
     }
     
-    // パスワードハッシュ化
+    // パスワードのハッシュ化
     const hashedPassword = await hashPassword(password);
     
-    // ユーザー作成
+    // ユーザーの作成
     const newUser = await createUser({
       username,
       email,
@@ -56,14 +53,14 @@ export async function POST(request: NextRequest) {
       role: 'user', // デフォルトロール
     });
     
-    // パスワードを除外して返す
+    // パスワードを除外したユーザー情報を返す
     const { password: _, ...userWithoutPassword } = newUser;
     
     return NextResponse.json(userWithoutPassword, { status: 201 });
   } catch (error) {
     console.error('ユーザー登録エラー:', error);
     return NextResponse.json(
-      { error: 'ユーザー登録に失敗しました' },
+      { error: 'ユーザー登録中にエラーが発生しました' },
       { status: 500 }
     );
   }
