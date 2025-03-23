@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authOptions } from "../../lib/auth";
 import { storage } from "@/lib/storage";
 import { insertVisaTaskSchema } from "@/shared/schema";
+import type { InsertVisaTask } from "@/shared/schema";
 
 /**
  * ユーザーのタスク一覧を取得するAPI
@@ -33,10 +34,21 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const userId = session.user.id;
-    const taskData = insertVisaTaskSchema.parse({ ...body, userId });
+    const validatedData = insertVisaTaskSchema.parse({ ...body, userId });
+
+    // データを適切な型に変換
+    const taskData: InsertVisaTask = {
+      userId: validatedData.userId,
+      title: validatedData.title,
+      description: validatedData.description || null,
+      completed: false,
+      dueDate: validatedData.dueDate ? new Date(validatedData.dueDate) : null,
+    };
+
     const task = await storage.createTask(taskData);
     return NextResponse.json(task);
   } catch (error) {
+    console.error("タスク作成エラー:", error);
     return NextResponse.json({ message: "Invalid request" }, { status: 400 });
   }
 }
