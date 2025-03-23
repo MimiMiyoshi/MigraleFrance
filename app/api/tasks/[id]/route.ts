@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { z } from "zod";
 import { authOptions } from "../../../lib/auth";
 import { getTask, updateTask, deleteTask } from "@/lib/db";
+import type { VisaTask } from "@/shared/schema";
 
 type TaskParams = {
   params: {
@@ -96,7 +97,7 @@ export async function PATCH(request: NextRequest, { params }: TaskParams) {
     const updateSchema = z.object({
       title: z.string().min(1).max(255).optional(),
       description: z.string().optional(),
-      dueDate: z.string().optional(),
+      dueDate: z.string().datetime().optional(),
       completed: z.boolean().optional(),
     });
 
@@ -108,8 +109,18 @@ export async function PATCH(request: NextRequest, { params }: TaskParams) {
       );
     }
 
+    // 更新データの型を変換
+    const updateData: Partial<VisaTask> = {
+      ...(result.data.title && { title: result.data.title }),
+      ...(result.data.description && { description: result.data.description }),
+      ...(result.data.completed !== undefined && {
+        completed: result.data.completed,
+      }),
+      ...(result.data.dueDate && { dueDate: new Date(result.data.dueDate) }),
+    };
+
     // タスク更新
-    const updatedTask = await updateTask(taskId, result.data);
+    const updatedTask = await updateTask(taskId, updateData);
 
     if (!updatedTask) {
       return NextResponse.json(
