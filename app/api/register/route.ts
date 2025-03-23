@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { hashPassword } from '@/utils/auth';
-import { createUser, getUserByEmail, getUserByUsername } from '@/lib/db';
+import { getUserByUsername, getUserByEmail, createUser } from '@/lib/db';
 import { insertUserSchema } from '@/shared/schema';
+import { hashPassword } from '@/utils/auth';
+import { z } from 'zod';
 
+// 登録用のスキーマ拡張（パスワード確認フィールド追加）
 const registerSchema = insertUserSchema.extend({
-  confirmPassword: z.string().min(8),
-}).refine((data) => data.password === data.confirmPassword, {
+  passwordConfirm: z.string().min(6, 'パスワード確認は6文字以上である必要があります'),
+}).refine(data => data.password === data.passwordConfirm, {
   message: 'パスワードが一致しません',
-  path: ['confirmPassword'],
+  path: ['passwordConfirm'],
 });
 
 export async function POST(request: NextRequest) {
@@ -24,10 +25,10 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const data = validationResult.data;
+    const { username, email, password } = validationResult.data;
     
     // ユーザー名が既に存在するか確認
-    const existingUsername = await getUserByUsername(data.username);
+    const existingUsername = await getUserByUsername(username);
     if (existingUsername) {
       return NextResponse.json(
         { error: 'このユーザー名は既に使用されています' },
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
     }
     
     // メールアドレスが既に存在するか確認
-    const existingEmail = await getUserByEmail(data.email);
+    const existingEmail = await getUserByEmail(email);
     if (existingEmail) {
       return NextResponse.json(
         { error: 'このメールアドレスは既に使用されています' },
@@ -45,17 +46,18 @@ export async function POST(request: NextRequest) {
     }
     
     // パスワードハッシュ化
-    const hashedPassword = await hashPassword(data.password);
+    const hashedPassword = await hashPassword(password);
     
     // ユーザー作成
     const newUser = await createUser({
-      username: data.username,
-      email: data.email,
+      username,
+      email,
       password: hashedPassword,
+      role: 'user', // デフォルトロール
     });
     
-    // パスワードを除いてユーザー情報を返す
-    const { password, ...userWithoutPassword } = newUser;
+    // パスワードを除外して返す
+    const { password: _, ...userWithoutPassword } = newUser;
     
     return NextResponse.json(userWithoutPassword, { status: 201 });
   } catch (error) {

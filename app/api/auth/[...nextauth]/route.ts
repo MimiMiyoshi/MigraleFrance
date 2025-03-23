@@ -1,7 +1,7 @@
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { comparePasswords } from '@/utils/auth';
 import { getUserByUsername } from '@/lib/db';
+import { comparePasswords } from '@/utils/auth';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,21 +16,29 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const user = await getUserByUsername(credentials.username);
-        
-        if (!user || !(await comparePasswords(credentials.password, user.password))) {
+        try {
+          // ユーザー名でユーザーを取得
+          const user = await getUserByUsername(credentials.username);
+          
+          // ユーザーが存在しない、またはパスワードが一致しない場合
+          if (!user || !(await comparePasswords(credentials.password, user.password))) {
+            return null;
+          }
+          
+          // パスワードを除外して返す
+          const { password, ...userWithoutPassword } = user;
+          return userWithoutPassword;
+        } catch (error) {
+          console.error('認証エラー:', error);
           return null;
         }
-        
-        return {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          role: user.role || 'user'
-        };
       }
     })
   ],
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30日
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -41,26 +49,23 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      session.user = {
-        id: token.id as number,
-        username: token.username as string,
-        role: token.role as string,
-        email: token.email,
-        name: token.name,
-        image: token.picture
-      };
+      if (token) {
+        session.user = {
+          ...session.user,
+          id: token.id as number,
+          username: token.username as string,
+          role: token.role as string,
+        };
+      }
       return session;
-    }
+    },
   },
   pages: {
     signIn: '/auth',
+    signOut: '/auth',
     error: '/auth',
   },
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30日
-  },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || 'your-fallback-secret-should-be-changed',
 };
 
 const handler = NextAuth(authOptions);

@@ -3,7 +3,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route';
 import { getTasksByUserId, createTask } from '@/lib/db';
 import { insertVisaTaskSchema } from '@/shared/schema';
-import { z } from 'zod';
 
 /**
  * ユーザーのタスク一覧を取得するAPI
@@ -50,7 +49,8 @@ export async function POST(request: NextRequest) {
     // ユーザーIDを追加
     const taskData = {
       ...body,
-      userId: session.user.id
+      userId: session.user.id,
+      completed: false // デフォルトは未完了
     };
     
     // バリデーション

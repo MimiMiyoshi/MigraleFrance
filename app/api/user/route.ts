@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    // パスワードは返さない
+    // パスワードフィールドを除外
     const { password, ...userWithoutPassword } = user;
     
     return NextResponse.json(userWithoutPassword);
