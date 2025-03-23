@@ -1,6 +1,27 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { storage } from "./storage";
+import { comparePasswords } from "../utils/auth";
+
+declare module "next-auth" {
+  interface User {
+    id: number;
+    username: string;
+  }
+  interface Session {
+    user: {
+      id: number;
+      username: string;
+    };
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string | number;
+    username: string;
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -20,7 +41,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const isValid = await storage.validatePassword(
+        const isValid = await comparePasswords(
           credentials.password,
           user.password
         );
@@ -36,14 +57,18 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
+        token.id = String(user.id);
         token.username = user.username;
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
-        session.user.id = token.id;
+        if (typeof token.id === "string") {
+          session.user.id = parseInt(token.id, 10);
+        } else if (typeof token.id === "number") {
+          session.user.id = token.id;
+        }
         session.user.username = token.username;
       }
       return session;
