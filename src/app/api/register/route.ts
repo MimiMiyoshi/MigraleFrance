@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { hashPassword } from "../../utils/auth";
-import { createUser, getUserByUsername, getUserByEmail } from "../../lib/db";
+import { hashPassword } from "@/utils/auth";
+import { createUser, getUserByUsername, getUserByEmail } from "@/lib/db";
 
 // 登録用バリデーションスキーマ
 const registerSchema = z.object({

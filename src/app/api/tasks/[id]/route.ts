@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { z } from "zod";
-import { authOptions } from "../../../lib/auth";
-import { getTask, updateTask, deleteTask } from "../../../lib/db";
-import type { VisaTask } from "../../../shared/schema";
+import { authOptions } from "@/lib/auth";
+import { getTask, updateTask, deleteTask } from "@/lib/db";
+import type { VisaTask } from "@/shared/schema";
 
 type TaskParams = {
   params: {

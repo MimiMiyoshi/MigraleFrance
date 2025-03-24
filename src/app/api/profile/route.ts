@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { z } from "zod";
-import { authOptions } from "../../lib/auth";
-import { getUser, updateUser } from "../../lib/db";
+import { authOptions } from "@/lib/auth";
+import { getUser, updateUser } from "@/lib/db";
 
 // プロフィール取得API
 export async function GET(request: NextRequest) {

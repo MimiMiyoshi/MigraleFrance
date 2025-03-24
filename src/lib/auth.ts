@@ -1,36 +1,42 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { storage } from "./storage";
-import { comparePasswords } from "../utils/auth";
+import { storage } from "./storage/index";
+import { comparePasswords } from "@/utils/auth";
 import type { RequestInternal } from "next-auth";
-import type { User as DbUser } from "../shared/schema";
+// import type { User as DbUser } from "../shared/schema";
 
 // 開発用モックユーザー
-const mockUser = {
-  id: 1,
-  username: "admin",
-  email: "admin@example.com",
-  password: "$2a$10$mockhashedpassword", // 開発環境用のモックパスワードハッシュ
-  role: "admin" as const,
-  createdAt: new Date(),
-  updatedAt: new Date(),
+// const mockUser = {
+//   id: 1,
+//   username: "admin",
+//   email: "admin@example.com",
+//   password: "$2a$10$mockhashedpassword", // 開発環境用のモックパスワードハッシュ
+//   role: "admin" as const,
+//   createdAt: new Date(),
+//   updatedAt: new Date(),
+// } as const;
+
+// User型の定義
+type User = {
+  id: number;
+  username: string;
+  email: string;
+  password: string;
+  role: "admin" | "user" | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 };
 
 declare module "next-auth" {
-  interface User {
-    id: number;
-    username: string;
-    email: string;
-    password: string;
-    role: "admin" | "user" | null;
-    createdAt: Date | null;
-    updatedAt: Date | null;
-  }
   interface Session {
     user: {
       id: number;
       username: string;
     };
+  }
+  interface User {
+    id: number;
+    username: string;
   }
 }
 

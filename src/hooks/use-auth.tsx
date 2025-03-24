@@ -6,7 +6,6 @@ import {
 } from "@tanstack/react-query";
 import { User as SelectUser } from "@shared/schema";
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
-import { useToast } from "./use-toast";
 
 type AuthContextType = {
   user: Omit<SelectUser, "password"> | null;
@@ -39,8 +38,6 @@ type RegisterData = {
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { toast } = useToast();
-
   // 開発用モックユーザー（一時的な対応）
   const mockUser: Omit<SelectUser, "password"> = {
     id: 1,
@@ -79,17 +76,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: Omit<SelectUser, "password">) => {
       queryClient.setQueryData(["/api/user"], user);
-      toast({
-        title: "ログイン成功",
-        description: `ようこそ、${user.username}さん！`,
-      });
     },
     onError: (error: Error) => {
-      toast({
-        title: "ログイン失敗",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Login error:", error.message);
     },
   });
 
@@ -110,17 +99,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: Omit<SelectUser, "password">) => {
       queryClient.setQueryData(["/api/user"], user);
-      toast({
-        title: "登録成功",
-        description: `ようこそ、${user.username}さん！`,
-      });
     },
     onError: (error: Error) => {
-      toast({
-        title: "登録失敗",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Registration error:", error.message);
     },
   });
 
@@ -136,17 +117,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: () => {
       // 開発環境では実際にはログアウトしない
       // queryClient.setQueryData(["/api/user"], null);
-      toast({
-        title: "ログアウト成功",
-        description: "正常にログアウトしました。",
-      });
     },
     onError: (error: Error) => {
-      toast({
-        title: "ログアウト失敗",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Logout error:", error.message);
     },
   });
 

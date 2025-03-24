@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { z } from "zod";
-import { authOptions } from "../../../lib/auth";
-import { getResponsesByUserId, createResponse } from "../../../lib/db";
-import { insertVisaResponseSchema } from "../../../shared/schema";
+import { authOptions } from "@/lib/auth";
+import { getResponsesByUserId, createResponse } from "@/lib/db";
+import { insertVisaResponseSchema } from "@/shared/schema";
 
 /**
  * ユーザーのビザ回答一覧を取得するAPI

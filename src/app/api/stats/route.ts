@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../lib/auth";
-import { getTasksByUserId, getResponsesByUserId } from "../../lib/db";
-import { VisaResponse } from "../../shared/schema";
+import { authOptions } from "@/lib/auth";
+import { getTasksByUserId, getResponsesByUserId } from "@/lib/db";
+import { VisaResponse } from "@/shared/schema";
 
 /**
  * ユーザーのタスク統計情報を取得するAPI

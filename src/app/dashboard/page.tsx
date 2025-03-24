@@ -1,7 +1,7 @@
 import React from "react";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { authOptions } from "../lib/auth";
+import { authOptions } from "@/lib/auth";
 import Dashboard from "./dashboard-component";
 
 export default async function DashboardPage() {

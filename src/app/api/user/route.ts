@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { getUser } from "../../lib/db";
-import { authOptions } from "../../lib/auth";
+import { getUser } from "@/lib/db";
+import { authOptions } from "@/lib/auth";
 
 /**
  * 現在のログインユーザー情報を取得するAPI

@@ -5,11 +5,10 @@ import {
   useState,
   useEffect,
 } from "react";
-import { NotificationType } from "../components/notifications/notification";
+import { NotificationType } from "@/components/notifications/notification";
 import { useAuth } from "./use-auth";
-import { useToast } from "./use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "../lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { v4 as uuidv4 } from "uuid";
 
 // フランスの文化に関連する情報メッセージのリスト
@@ -151,6 +150,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       read: false,
     };
 
+    console.log("New notification added:", newNotification);
     const updatedNotifications = [newNotification, ...notifications];
     updateNotificationsMutation.mutate(updatedNotifications);
   };
@@ -163,12 +163,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   // 通知を削除
   const dismissNotification = (id: string) => {
+    console.log("Notification dismissed:", id);
     const updatedNotifications = notifications.filter((n) => n.id !== id);
     updateNotificationsMutation.mutate(updatedNotifications);
   };
 
   // 通知を既読にする
   const markAsRead = (id: string) => {
+    console.log("Notification marked as read:", id);
     const updatedNotifications = notifications.map((n) =>
       n.id === id ? { ...n, read: true } : n
     );
@@ -177,6 +179,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   // すべての通知を既読にする
   const markAllAsRead = () => {
+    console.log("All notifications marked as read");
     const updatedNotifications = notifications.map((n) => ({
       ...n,
       read: true,

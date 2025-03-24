@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { getSupabase } from "./supabase";
 import {
   User,
   InsertUser,
@@ -17,6 +17,7 @@ import {
  */
 export async function getUser(id: number): Promise<User | undefined> {
   try {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("users")
       .select("*")
@@ -35,6 +36,7 @@ export async function getUserByUsername(
   username: string
 ): Promise<User | undefined> {
   try {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("users")
       .select("*")
@@ -51,6 +53,7 @@ export async function getUserByUsername(
 
 export async function getUserByEmail(email: string): Promise<User | undefined> {
   try {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("users")
       .select("*")
@@ -67,6 +70,7 @@ export async function getUserByEmail(email: string): Promise<User | undefined> {
 
 export async function createUser(user: InsertUser): Promise<User> {
   try {
+    const supabase = getSupabase();
     const now = new Date().toISOString();
     const { data, error } = await supabase
       .from("users")
@@ -87,6 +91,7 @@ export async function updateUser(
   updates: Partial<User>
 ): Promise<User | undefined> {
   try {
+    const supabase = getSupabase();
     const now = new Date().toISOString();
     const { data, error } = await supabase
       .from("users")
@@ -108,6 +113,7 @@ export async function updateUser(
  */
 export async function getTasksByUserId(userId: number): Promise<VisaTask[]> {
   try {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("visa_tasks")
       .select("*")
@@ -123,6 +129,7 @@ export async function getTasksByUserId(userId: number): Promise<VisaTask[]> {
 
 export async function getTask(id: number): Promise<VisaTask | undefined> {
   try {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("visa_tasks")
       .select("*")
@@ -139,6 +146,7 @@ export async function getTask(id: number): Promise<VisaTask | undefined> {
 
 export async function createTask(task: InsertVisaTask): Promise<VisaTask> {
   try {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("visa_tasks")
       .insert([task])
@@ -158,6 +166,7 @@ export async function updateTask(
   taskUpdate: Partial<VisaTask>
 ): Promise<VisaTask | undefined> {
   try {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("visa_tasks")
       .update(taskUpdate)
@@ -175,6 +184,7 @@ export async function updateTask(
 
 export async function deleteTask(id: number): Promise<boolean> {
   try {
+    const supabase = getSupabase();
     const { error } = await supabase.from("visa_tasks").delete().eq("id", id);
 
     if (error) throw error;
@@ -192,6 +202,7 @@ export async function getResponsesByUserId(
   userId: number
 ): Promise<VisaResponse[]> {
   try {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("visa_responses")
       .select("*")
@@ -209,6 +220,7 @@ export async function getResponse(
   id: number
 ): Promise<VisaResponse | undefined> {
   try {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("visa_responses")
       .select("*")
@@ -227,6 +239,7 @@ export async function createResponse(
   response: InsertVisaResponse
 ): Promise<VisaResponse> {
   try {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("visa_responses")
       .insert([response])
