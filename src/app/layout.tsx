@@ -1,33 +1,26 @@
 import "./globals.css";
-import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { AuthProvider } from "./components/auth-provider";
-import { MainNav } from "./components/nav/main-nav";
-import { getServerSession } from "next-auth";
-import { authOptions } from "./lib/auth";
-import "../lib/env"; // 環境変数のバリデーション
+import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider } from "@/components/auth-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "Migrale - フランス移住サポートアプリ",
-  description:
-    "フランス移住を計画する日本人のためのビザ申請・タスク管理サポートアプリケーション",
+export const metadata = {
+  title: "Migrale - フランス移住支援プラットフォーム",
+  description: "フランスへの移住をサポートするプラットフォーム",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
-
   return (
     <html lang="ja">
       <body className={inter.className}>
-        <AuthProvider session={session}>
-          <MainNav />
-          <main className="min-h-[calc(100vh-4rem)]">{children}</main>
+        <AuthProvider>
+          {children}
+          <Toaster />
         </AuthProvider>
       </body>
     </html>
