@@ -352,5 +352,37 @@ export class SupabaseStorage implements IStorage {
   }
 }
 
-// Switch to Supabase storage
-export const storage = new SupabaseStorage();
+// Export a singleton instance of the storage implementation
+const isDevelopment = process.env.NODE_ENV === "development";
+console.log(
+  `Using ${isDevelopment ? "MemStorage" : "SupabaseStorage"} for ${
+    process.env.NODE_ENV
+  } environment`
+);
+
+// Initialize the mock user for development
+const mockUser: User = {
+  id: 1,
+  username: "admin",
+  email: "admin@example.com",
+  password: "$2a$10$mockhashedpassword",
+  role: "admin",
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
+export const storage = (() => {
+  if (isDevelopment || !process.env.SUPABASE_URL) {
+    console.log("Using MemStorage for development or missing Supabase config");
+    const memStorage = new MemStorage();
+    // Add mock user to memory storage
+    memStorage.createUser({
+      username: mockUser.username,
+      email: mockUser.email,
+      password: mockUser.password,
+      role: mockUser.role,
+    });
+    return memStorage;
+  }
+  return new SupabaseStorage();
+})();

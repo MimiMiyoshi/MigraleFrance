@@ -9,12 +9,20 @@ import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "./use-toast";
 
 type AuthContextType = {
-  user: SelectUser | null;
+  user: Omit<SelectUser, "password"> | null;
   isLoading: boolean;
   error: Error | null;
-  loginMutation: UseMutationResult<Omit<SelectUser, "password">, Error, LoginData>;
+  loginMutation: UseMutationResult<
+    Omit<SelectUser, "password">,
+    Error,
+    LoginData
+  >;
   logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<Omit<SelectUser, "password">, Error, RegisterData>;
+  registerMutation: UseMutationResult<
+    Omit<SelectUser, "password">,
+    Error,
+    RegisterData
+  >;
 };
 
 type LoginData = {
@@ -32,17 +40,17 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-  
+
   // 開発用モックユーザー（一時的な対応）
   const mockUser: Omit<SelectUser, "password"> = {
     id: 1,
     username: "admin",
     email: "admin@example.com",
     role: "admin",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
-  
+
   // 本番環境では以下のコードを使用
   // const {
   //   data: user,
@@ -52,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   //   queryKey: ["/api/user"],
   //   queryFn: getQueryFn({ on401: "returnNull" }),
   // });
-  
+
   // 開発環境用：モックユーザーを使用
   const user = mockUser;
   const error = null;
@@ -64,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // 本番環境では以下を使用
       // const res = await apiRequest("POST", "/api/login", credentials);
       // return await res.json();
-      
+
       // 開発環境用：モックレスポンスを返す
       console.log("Login attempt with:", credentials);
       return mockUser;
@@ -91,13 +99,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // 本番環境では以下を使用
       // const res = await apiRequest("POST", "/api/register", userData);
       // return await res.json();
-      
+
       // 開発環境用：モックレスポンスを返す
       console.log("Registration attempt with:", userData);
       return {
         ...mockUser,
         username: userData.username,
-        email: userData.email
+        email: userData.email,
       };
     },
     onSuccess: (user: Omit<SelectUser, "password">) => {
@@ -121,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     mutationFn: async () => {
       // 本番環境では以下を使用
       // await apiRequest("POST", "/api/logout");
-      
+
       // 開発環境用：何もしない
       console.log("Logout attempt");
     },

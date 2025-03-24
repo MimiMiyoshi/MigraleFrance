@@ -5,6 +5,17 @@ import { comparePasswords } from "../utils/auth";
 import type { RequestInternal } from "next-auth";
 import type { User as DbUser } from "../shared/schema";
 
+// 開発用モックユーザー
+const mockUser = {
+  id: 1,
+  username: "admin",
+  email: "admin@example.com",
+  password: "$2a$10$mockhashedpassword", // 開発環境用のモックパスワードハッシュ
+  role: "admin" as const,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
 declare module "next-auth" {
   interface User {
     id: number;
